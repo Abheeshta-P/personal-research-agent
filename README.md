@@ -2,45 +2,45 @@
 
 This project is my step-by-step journey learning how to build an AI agent using Python.
 
-The goal is not just to copy code from a tutorial. The goal is to understand **\*\*how an AI agent actually works\*\***, starting from a simple Gemini API call and gradually building toward a proper agent with tools, memory, web research, and LangGraph.
+The goal is not just to copy code from a tutorial. The goal is to understand ****how an AI agent actually works****, starting from a simple Gemini API call and gradually building toward a proper agent with tools, memory, web research, and LangGraph.
 
 **---**
 
 **# 📚 What We Are Building**
 
-The eventual goal is an **\*\*AI Research Agent\*\***.
+The eventual goal is an ****AI Research Agent****.
 
 For example, I want to eventually be able to ask:
 
-\> Research the best laptop under ₹80,000 for programming in India. Compare several options and recommend the best one.
+> Research the best laptop under ₹80,000 for programming in India. Compare several options and recommend the best one.
 
 The eventual architecture will look something like:
 
-\`\`\`text
-                    USER
-                      │
-                      ▼
-                  AI AGENT
-                      │
-                      ▼
-                   PLANNER
-                      │
-             ┌────────┴────────┐
-             ▼                 ▼
-         WEB SEARCH          TOOLS
-             │                 │
-             └────────┬────────┘
-                      ▼
-                   ANALYZE
-                      │
-                      ▼
-                 FACT CHECK
-                      │
-                      ▼
-                  FINAL REPORT
-\`\`\`
+```text
+                    USER
+                      │
+                      ▼
+                 AI AGENT
+                      │
+                      ▼
+                   PLANNER
+                      │
+             ┌────────┴────────┐
+             ▼                 ▼
+        WEB SEARCH          TOOLS
+             │                 │
+             └────────┬────────┘
+                      ▼
+                   ANALYZE
+                      │
+                      ▼
+                 FACT CHECK
+                      │
+                      ▼
+                FINAL REPORT
+```
 
-But we are building this **\*\*one concept at a time\*\***.
+But we are building this ****one concept at a time****.
 
 **---**
 
@@ -56,26 +56,26 @@ We use Python because it has a huge ecosystem for AI, automation, APIs, web appl
 
 **## uv**
 
-\`uv\` is our Python project and dependency manager.
+`uv` is our Python project and dependency manager.
 
-Instead of manually installing packages with \`pip\`, we use commands such as:
+Instead of manually installing packages with `pip`, we use commands such as:
 
-\`\`\`bash
+```bash
 uv add langchain
-\`\`\`
+```
 
 and:
 
-\`\`\`bash
+```bash
 uv run graph.py
-\`\`\`
+```
 
-\`uv\` also keeps track of our dependencies in:
+`uv` also keeps track of our dependencies in:
 
-\`\`\`text
+```text
 pyproject.toml
 uv.lock
-\`\`\`
+```
 
 **---**
 
@@ -87,40 +87,40 @@ So why use LangChain?
 
 Because eventually our application needs more than just:
 
-\`\`\`text
+```text
 Question → Gemini → Answer
-\`\`\`
+```
 
 We want:
 
-\`\`\`text
+```text
 Question
-   ↓
+   ↓
 AI
-   ↓
+   ↓
 Tool?
-   ↓
+   ↓
 Search / Calculator / Files / APIs
-   ↓
+   ↓
 AI
-   ↓
+   ↓
 More decisions
-   ↓
+   ↓
 Final answer
-\`\`\`
+```
 
 LangChain gives us useful abstractions for working with:
 
-\* Chat models
-\* Messages
-\* Tools
-\* Tool calls
-\* Structured output
-\* Agents
-\* Prompts
-\* Model integrations
+* Chat models
+* Messages
+* Tools
+* Tool calls
+* Structured output
+* Agents
+* Prompts
+* Model integrations
 
-So LangChain helps us build the **\*\*components around the model\*\***.
+So LangChain helps us build the ****components around the model****.
 
 **---**
 
@@ -130,41 +130,41 @@ LangGraph will eventually control the workflow of our agent.
 
 Instead of manually writing a complicated loop like:
 
-\`\`\`text
+```text
 Ask model
- ↓
+ ↓
 Did it request a tool?
- ↓
+ ↓
 Run tool
- ↓
+ ↓
 Send result to model
- ↓
+ ↓
 Did it request another tool?
- ↓
+ ↓
 Run tool
- ↓
+ ↓
 ...
-\`\`\`
+```
 
 LangGraph lets us represent the process as a graph.
 
 For example:
 
-\`\`\`text
+```text
 START
-  ↓
+  ↓
 Agent
-  ↓
+  ↓
 Tool?
- ┌───────┐
- │       │
-YES      NO
- │       │
- ▼       ▼
-Tool    END
- │
- └──→ Agent
-\`\`\`
+ ┌───────┐
+ │       │
+YES      NO
+ │       │
+ ▼       ▼
+Tool    END
+ │
+ └──→ Agent
+```
 
 We haven't started using LangGraph yet because we first wanted to understand what is happening underneath.
 
@@ -176,19 +176,19 @@ We originally considered OpenAI, but decided to use Google's Gemini API instead.
 
 The project therefore uses:
 
-\`\`\`text
+```text
 Gemini
-   +
+   +
 LangChain
-   +
+   +
 LangGraph
-\`\`\`
+```
 
 The LangChain integration is provided by:
 
-\`\`\`text
+```text
 langchain-google-genai
-\`\`\`
+```
 
 **---**
 
@@ -198,15 +198,15 @@ We started with a blank GitHub Codespace.
 
 Our project directory is:
 
-\`\`\`text
+```text
 /workspaces/codespaces-blank
-\`\`\`
+```
 
 We initialized the Python project:
 
-\`\`\`bash
+```bash
 uv init
-\`\`\`
+```
 
 This created the Python project configuration.
 
@@ -216,25 +216,25 @@ This created the Python project configuration.
 
 We installed:
 
-\`\`\`bash
+```bash
 uv add langchain langgraph python-dotenv langchain-google-genai
-\`\`\`
+```
 
 These packages are used for different purposes.
 
-**### \`langchain\`**
+**### `langchain`**
 
 The main LangChain framework.
 
-**### \`langgraph\`**
+**### `langgraph`**
 
 Used later to build the actual agent workflow.
 
-**### \`python-dotenv\`**
+**### `python-dotenv`**
 
-Allows us to load secrets such as our Gemini API key from a \`.env\` file.
+Allows us to load secrets such as our Gemini API key from a `.env` file.
 
-**### \`langchain-google-genai\`**
+**### `langchain-google-genai`**
 
 Connects LangChain to Google's Gemini models.
 
@@ -246,23 +246,23 @@ We do NOT put the Gemini API key directly into Python code.
 
 Instead, we created:
 
-\`\`\`text
+```text
 .env
-\`\`\`
+```
 
 with:
 
-\`\`\`text
-GEMINI\_API\_KEY=YOUR\_KEY\_HERE
-\`\`\`
+```text
+GEMINI_API_KEY=YOUR_KEY_HERE
+```
 
-We also created \`.gitignore\`:
+We also created `.gitignore`:
 
-\`\`\`text
+```text
 .env
 .venv/
-\_\_pycache\_\_/
-\`\`\`
+__pycache__/
+```
 
 This prevents the API key from accidentally being committed to GitHub.
 
@@ -300,8 +300,8 @@ codespaces-blank/
 
 The `tools/` directory contains our LangChain tools.
 
-- `calculator.py` contains the calculator tool.
-- `wikipedia.py` contains the first version of our Wikipedia research tool.
+* `calculator.py` contains the calculator tool.
+* `wikipedia.py` contains the first version of our Wikipedia research tool.
 
 **---**
 
@@ -309,22 +309,22 @@ The `tools/` directory contains our LangChain tools.
 
 The first thing we wanted to prove was:
 
-\> Can Python successfully communicate with Gemini?
+> Can Python successfully communicate with Gemini?
 
 We created:
 
-\`\`\`text
+```text
 main.py
-\`\`\`
+```
 
 and started with:
 
-\`\`\`python
+```python
 import os
 
-from dotenv import load\_dotenv
-from langchain\_google\_genai import ChatGoogleGenerativeAI
-\`\`\`
+from dotenv import load_dotenv
+from langchain_google_genai import ChatGoogleGenerativeAI
+```
 
 **---**
 
@@ -332,33 +332,33 @@ from langchain\_google\_genai import ChatGoogleGenerativeAI
 
 We added:
 
-\`\`\`python
-load\_dotenv()
+```python
+load_dotenv()
 
-api\_key = os.getenv("GEMINI\_API\_KEY")
+api_key = os.getenv("GEMINI_API_KEY")
 
-if not api\_key:
-    raise ValueError("GEMINI\_API\_KEY is not set!")
-\`\`\`
+if not api_key:
+    raise ValueError("GEMINI_API_KEY is not set!")
+```
 
 **## What is happening?**
 
-\`load\_dotenv()\` reads the \`.env\` file.
+`load_dotenv()` reads the `.env` file.
 
 Then:
 
-\`\`\`python
-os.getenv("GEMINI\_API\_KEY")
-\`\`\`
+```python
+os.getenv("GEMINI_API_KEY")
+```
 
 looks for our API key.
 
 The safety check:
 
-\`\`\`python
-if not api\_key:
-    raise ValueError(...)
-\`\`\`
+```python
+if not api_key:
+    raise ValueError(...)
+```
 
 makes the program stop with a useful error if the key is missing.
 
@@ -368,26 +368,26 @@ makes the program stop with a useful error if the key is missing.
 
 We created:
 
-\`\`\`python
+```python
 model = ChatGoogleGenerativeAI(
-    model="gemini-3.6-flash",
-    google\_api\_key=api\_key,
+    model="gemini-3.6-flash",
+    google_api_key=api_key,
 )
-\`\`\`
+```
 
 This creates a LangChain chat-model object connected to Gemini.
 
 Conceptually:
 
-\`\`\`text
+```text
 Python
-   ↓
+   ↓
 LangChain
-   ↓
+   ↓
 Gemini
-\`\`\`
+```
 
-At this point, \`model\` represents the Gemini model we can communicate with.
+At this point, `model` represents the Gemini model we can communicate with.
 
 **---**
 
@@ -395,33 +395,33 @@ At this point, \`model\` represents the Gemini model we can communicate with.
 
 Initially we used a hard-coded question:
 
-\`\`\`python
+```python
 response = model.invoke(
-    "Explain what an AI agent is in one sentence."
+    "Explain what an AI agent is in one sentence."
 )
-\`\`\`
+```
 
 Then:
 
-\`\`\`python
+```python
 print(response.text)
-\`\`\`
+```
 
 prints the answer.
 
 This proved that our basic system worked:
 
-\`\`\`text
+```text
 Python
-  ↓
+  ↓
 LangChain
-  ↓
+  ↓
 Gemini API
-  ↓
+  ↓
 Gemini response
-  ↓
+  ↓
 Python
-\`\`\`
+```
 
 **---**
 
@@ -431,36 +431,36 @@ One important lesson happened here.
 
 The response from LangChain is not simply a normal Python string.
 
-It is an \`AIMessage\` object.
+It is an `AIMessage` object.
 
 We initially tried:
 
-\`\`\`python
+```python
 response.context
-\`\`\`
+```
 
 which produced:
 
-\`\`\`text
+```text
 AttributeError:
 'AIMessage' object has no attribute 'context'
-\`\`\`
+```
 
 The important response content was available through properties such as:
 
-\`\`\`python
+```python
 response.content
-\`\`\`
+```
 
 and, with the newer response format we encountered:
 
-\`\`\`python
+```python
 response.text
-\`\`\`
+```
 
 The lesson:
 
-\> A model response is a structured message object, not necessarily just a string.
+> A model response is a structured message object, not necessarily just a string.
 
 This becomes very important when we start dealing with tool calls.
 
@@ -472,43 +472,43 @@ We didn't want the question permanently written into the program.
 
 We changed it to:
 
-\`\`\`python
+```python
 question = input("Ask me anything: ")
 
 response = model.invoke(question)
 
 print(response.text)
-\`\`\`
+```
 
 Now the program waits for the user.
 
 Example:
 
-\`\`\`text
+```text
 Ask me anything: What is LangGraph?
-\`\`\`
+```
 
 The user's input is stored in:
 
-\`\`\`python
+```python
 question
-\`\`\`
+```
 
 and sent to Gemini.
 
 Now our application became:
 
-\`\`\`text
+```text
 USER
- ↓
+ ↓
 Python
- ↓
+ ↓
 LangChain
- ↓
+ ↓
 Gemini
- ↓
+ ↓
 Answer
-\`\`\`
+```
 
 **---**
 
@@ -518,53 +518,53 @@ We then introduced a system instruction.
 
 Instead of:
 
-\`\`\`python
+```python
 response = model.invoke(question)
-\`\`\`
+```
 
 we used:
 
-\`\`\`python
+```python
 response = model.invoke([
-    (
-        "system",
-        "You are a helpful AI research assistant. Explain things clearly and accurately."
-    ),
-    ("human", question),
+    (
+        "system",
+        "You are a helpful AI research assistant. Explain things clearly and accurately."
+    ),
+    ("human", question),
 ])
-\`\`\`
+```
 
 Now Gemini receives two different types of messages.
 
 **## System**
 
-\`\`\`text
+```text
 You are a helpful AI research assistant.
-\`\`\`
+```
 
 This tells the model how it should behave.
 
 **## Human**
 
-\`\`\`text
+```text
 The user's actual question.
-\`\`\`
+```
 
 This tells the model what the user wants.
 
 Conceptually:
 
-\`\`\`text
+```text
 SYSTEM
 "You are a helpful research assistant."
-        +
+        +
 HUMAN
 "What is LangGraph?"
-        ↓
-      GEMINI
-        ↓
-      ANSWER
-\`\`\`
+        ↓
+      GEMINI
+        ↓
+      ANSWER
+```
 
 This distinction becomes important when building agents.
 
@@ -576,71 +576,71 @@ Now we moved from a chatbot toward an agent.
 
 The important idea:
 
-\> A model can generate text, but tools allow the AI application to perform actions.
+> A model can generate text, but tools allow the AI application to perform actions.
 
 Examples of future tools could include:
 
-\* Calculator
-\* Web search
-\* Reading files
-\* Database queries
-\* APIs
-\* Sending emails
-\* Searching documents
+* Calculator
+* Web search
+* Reading files
+* Database queries
+* APIs
+* Sending emails
+* Searching documents
 
 We started with the simplest possible tool: a calculator.
 
 We imported:
 
-\`\`\`python
-from langchain\_core.tools import tool
-\`\`\`
+```python
+from langchain_core.tools import tool
+```
 
 Then created:
 
-\`\`\`python
+```python
 @tool
 def calculator(a: float, b: float) -> float:
-    """Add two numbers together."""
-    return a + b
-\`\`\`
+    """Add two numbers together."""
+    return a + b
+```
 
 **---**
 
-**# 🧠 What Does \`@tool\` Do?**
+**# 🧠 What Does `@tool` Do?**
 
-Without \`@tool\`, this is simply a Python function:
+Without `@tool`, this is simply a Python function:
 
-\`\`\`python
+```python
 def calculator(a, b):
-    return a + b
-\`\`\`
+    return a + b
+```
 
 With:
 
-\`\`\`python
+```python
 @tool
-\`\`\`
+```
 
-LangChain knows that this function should be treated as a **\*\*tool available to an AI model\*\***.
+LangChain knows that this function should be treated as a ****tool available to an AI model****.
 
 Conceptually:
 
-\`\`\`text
-             GEMINI
-                │
-                │ can request
-                ▼
-          ┌───────────┐
-          │ Calculator│
-          └───────────┘
-\`\`\`
+```text
+             GEMINI
+                │
+                │ can request
+                ▼
+          ┌───────────┐
+          │ Calculator│
+          └───────────┘
+```
 
 The docstring:
 
-\`\`\`python
+```python
 """Add two numbers together."""
-\`\`\`
+```
 
 is also important because it describes what the tool does.
 
@@ -652,25 +652,25 @@ The model can use this information when deciding whether the tool is useful.
 
 We created:
 
-\`\`\`python
-model\_with\_tools = model.bind\_tools([calculator])
-\`\`\`
+```python
+model_with_tools = model.bind_tools([calculator])
+```
 
 This tells Gemini:
 
-\> You have access to the calculator tool.
+> You have access to the calculator tool.
 
 Then instead of:
 
-\`\`\`python
+```python
 model.invoke(...)
-\`\`\`
+```
 
 we used:
 
-\`\`\`python
-model\_with\_tools.invoke(...)
-\`\`\`
+```python
+model_with_tools.invoke(...)
+```
 
 **---**
 
@@ -678,21 +678,21 @@ model\_with\_tools.invoke(...)
 
 We tested:
 
-\`\`\`text
+```text
 What is 25 + 37?
-\`\`\`
+```
 
 We expected:
 
-\`\`\`text
+```text
 62
-\`\`\`
+```
 
 But instead:
 
-\`\`\`python
+```python
 response.text
-\`\`\`
+```
 
 was empty.
 
@@ -704,7 +704,7 @@ This was an important discovery.
 
 Gemini had decided:
 
-\> I should use the calculator tool.
+> I should use the calculator tool.
 
 But Gemini had not actually executed our Python function.
 
@@ -714,49 +714,49 @@ But Gemini had not actually executed our Python function.
 
 Instead of:
 
-\`\`\`python
+```python
 print(response.text)
-\`\`\`
+```
 
 we temporarily used:
 
-\`\`\`python
+```python
 print(response)
-\`\`\`
+```
 
 This showed information like:
 
-\`\`\`text
-tool\_calls=[
-    {
-        'name': 'calculator',
-        'args': {
-            'b': 9,
-            'a': 29
-        },
-        ...
-    }
+```text
+tool_calls=[
+    {
+        'name': 'calculator',
+        'args': {
+            'b': 9,
+            'a': 29
+        },
+        ...
+    }
 ]
-\`\`\`
+```
 
 This was a major learning moment.
 
-Gemini had produced a **\*\*tool call\*\***.
+Gemini had produced a ****tool call****.
 
 It essentially said:
 
-\`\`\`text
+```text
 Use the calculator.
 
 calculator(
-    a=29,
-    b=9
+    a=29,
+    b=9
 )
-\`\`\`
+```
 
 The AI wasn't directly running our Python function.
 
-It was **\*\*requesting that our application run it\*\***.
+It was ****requesting that our application run it****.
 
 **---**
 
@@ -766,15 +766,15 @@ This distinction is extremely important:
 
 **## Gemini decides**
 
-\`\`\`text
+```text
 "I need a calculator."
-\`\`\`
+```
 
 **## Our Python program executes**
 
-\`\`\`python
+```python
 calculator(29, 9)
-\`\`\`
+```
 
 The model itself does not magically execute arbitrary Python code.
 
@@ -786,59 +786,59 @@ Our application is responsible for executing tools safely.
 
 We checked:
 
-\`\`\`python
-if response.tool\_calls:
-\`\`\`
+```python
+if response.tool_calls:
+```
 
 This means:
 
-\> Did Gemini request a tool?
+> Did Gemini request a tool?
 
 Then:
 
-\`\`\`python
-tool\_call = response.tool\_calls[0]
-\`\`\`
+```python
+tool_call = response.tool_calls[0]
+```
 
 gets the first tool request.
 
 Then:
 
-\`\`\`python
-result = calculator.invoke(tool\_call["args"])
-\`\`\`
+```python
+result = calculator.invoke(tool_call["args"])
+```
 
 actually executes the calculator.
 
 So the process becomes:
 
-\`\`\`text
+```text
 USER
-  │
-  │ "What is 29 + 9?"
-  ▼
+ │
+ │ "What is 29 + 9?"
+ ▼
 GEMINI
-  │
-  │ tool call
-  ▼
+ │
+ │ tool call
+ ▼
 calculator
-  │
-  │ 38
-  ▼
+ │
+ │ 38
+ ▼
 Python
-\`\`\`
+```
 
 At this stage, we could print:
 
-\`\`\`python
+```python
 print("Calculator result:", result)
-\`\`\`
+```
 
 and get:
 
-\`\`\`text
+```text
 Calculator result: 38.0
-\`\`\`
+```
 
 **---**
 
@@ -848,101 +848,101 @@ But there was still a problem.
 
 We had:
 
-\`\`\`text
+```text
 User
- ↓
+↓
 Gemini
- ↓
+↓
 Calculator
- ↓
+↓
 Python
-\`\`\`
+```
 
 Gemini hadn't seen the calculator result yet.
 
 A proper tool-using workflow should be:
 
-\`\`\`text
+```text
 User
- ↓
+↓
 Gemini
- ↓
+↓
 Tool call
- ↓
+↓
 Calculator
- ↓
+↓
 Tool result
- ↓
+↓
 Gemini AGAIN
- ↓
+↓
 Final answer
-\`\`\`
+```
 
 So we kept the conversation in:
 
-\`\`\`python
+```python
 messages = [
-    (
-        "system",
-        "You are a helpful AI research assistant. Use the calculator when you need to calculate numbers."
-    ),
-    ("human", question),
+    (
+        "system",
+        "You are a helpful AI research assistant. Use the calculator when you need to calculate numbers."
+    ),
+    ("human", question),
 ]
-\`\`\`
+```
 
 Then:
 
-\`\`\`python
-response = model\_with\_tools.invoke(messages)
-\`\`\`
+```python
+response = model_with_tools.invoke(messages)
+```
 
 Gemini decides whether it needs the calculator.
 
 If it does:
 
-\`\`\`python
-if response.tool\_calls:
-\`\`\`
+```python
+if response.tool_calls:
+```
 
 we extract the tool call:
 
-\`\`\`python
-tool\_call = response.tool\_calls[0]
-\`\`\`
+```python
+tool_call = response.tool_calls[0]
+```
 
 execute it:
 
-\`\`\`python
-result = calculator.invoke(tool\_call["args"])
-\`\`\`
+```python
+result = calculator.invoke(tool_call["args"])
+```
 
 Then we add the model response to the conversation:
 
-\`\`\`python
+```python
 messages.append(response)
-\`\`\`
+```
 
 and add the tool result:
 
-\`\`\`python
+```python
 messages.append({
-    "role": "tool",
-    "content": str(result),
-    "tool\_call\_id": tool\_call["id"],
+    "role": "tool",
+    "content": str(result),
+    "tool_call_id": tool_call["id"],
 })
-\`\`\`
+```
 
 Finally, we call Gemini again:
 
-\`\`\`python
-final\_response = model\_with\_tools.invoke(messages)
-\`\`\`
+```python
+final_response = model_with_tools.invoke(messages)
+```
 
 and print:
 
-\`\`\`python
-print(final\_response.text)
-\`\`\`
+```python
+print(final_response.text)
+```
 
 **---**
 
@@ -950,33 +950,33 @@ print(final\_response.text)
 
 We now understand the basic mechanism behind a tool-using agent:
 
-\`\`\`text
-                         USER
-                           │
-                           ▼
-                     ┌──────────┐
-                     │  GEMINI  │
-                     └────┬─────┘
-                          │
-                    Need a tool?
-                     /          \\
-                   NO            YES
-                   │              │
-                   ▼              ▼
-                Answer       Tool Request
-                                  │
-                                  ▼
-                            Python Tool
-                                  │
-                                  ▼
-                              Tool Result
-                                  │
-                                  ▼
-                              GEMINI
-                                  │
-                                  ▼
-                             Final Answer
-\`\`\`
+```text
+                         USER
+                           │
+                           ▼
+                     ┌──────────┐
+                     │  GEMINI  │
+                     └────┬─────┘
+                          │
+                    Need a tool?
+                     /          \
+                   NO            YES
+                   │              │
+                   ▼              ▼
+                Answer       Tool Request
+                                  │
+                                  ▼
+                            Python Tool
+                                  │
+                                  ▼
+                              Tool Result
+                                  │
+                                  ▼
+                              GEMINI
+                                  │
+                                  ▼
+                             Final Answer
+```
 
 This is the fundamental idea we wanted to understand before introducing LangGraph.
 
@@ -988,13 +988,13 @@ This is the fundamental idea we wanted to understand before introducing LangGrap
 
 A basic model call is:
 
-\`\`\`text
+```text
 Question
-   ↓
+   ↓
 Model
-   ↓
+   ↓
 Answer
-\`\`\`
+```
 
 That alone is not a full agent.
 
@@ -1004,17 +1004,17 @@ That alone is not a full agent.
 
 We created:
 
-\`\`\`python
+```python
 @tool
 def calculator(...):
-    ...
-\`\`\`
+    ...
+```
 
 and made it available to Gemini with:
 
-\`\`\`python
-model.bind\_tools([calculator])
-\`\`\`
+```python
+model.bind_tools([calculator])
+```
 
 **---**
 
@@ -1022,17 +1022,17 @@ model.bind\_tools([calculator])
 
 Gemini returned something like:
 
-\`\`\`text
-tool\_calls=[
-    {
-        "name": "calculator",
-        "args": {
-            "a": 29,
-            "b": 9
-        }
-    }
+```text
+tool_calls=[
+    {
+        "name": "calculator",
+        "args": {
+            "a": 29,
+            "b": 9
+        }
+    }
 ]
-\`\`\`
+```
 
 This is different from a normal text response.
 
@@ -1042,9 +1042,9 @@ This is different from a normal text response.
 
 The Python program is responsible for:
 
-\`\`\`python
+```python
 calculator.invoke(...)
-\`\`\`
+```
 
 The model requests the action.
 
@@ -1058,19 +1058,19 @@ The model needs the tool result to continue reasoning and generate a final answe
 
 Therefore:
 
-\`\`\`text
+```text
 Model
- ↓
+↓
 Tool request
- ↓
+↓
 Tool
- ↓
+↓
 Tool result
- ↓
+↓
 Model
- ↓
+↓
 Final answer
-\`\`\`
+```
 
 **---**
 
@@ -1392,19 +1392,19 @@ The next step is to parse the JSON response and extract the actual article text.
 
 At the moment, we manually wrote the workflow:
 
-\`\`\`python
-if response.tool\_calls:
-    ...
-    calculator.invoke(...)
-    ...
-    model\_with\_tools.invoke(...)
-\`\`\`
+```python
+if response.tool_calls:
+    ...
+    calculator.invoke(...)
+    ...
+    model_with_tools.invoke(...)
+```
 
 That works for one simple tool.
 
 But imagine we have:
 
-\`\`\`text
+```text
 Web Search
 Calculator
 File Reader
@@ -1412,20 +1412,20 @@ Database
 Weather
 Email
 Code Executor
-\`\`\`
+```
 
 and the model can call tools multiple times.
 
 Our code could become a huge collection of:
 
-\`\`\`python
+```python
 if
 elif
 while
 if
 try
 ...
-\`\`\`
+```
 
 This becomes difficult to manage.
 
@@ -1433,27 +1433,27 @@ LangGraph gives us a better way to represent the workflow.
 
 Eventually we'll have something like:
 
-\`\`\`text
-              ┌──────────────┐
-              │    Agent     │
-              └──────┬───────┘
-                     │
-                Tool needed?
-                /           \\
-              YES            NO
-               │              │
-               ▼              ▼
-          ┌─────────┐       END
-          │  Tools  │
-          └────┬────┘
-               │
-               └──────────────┐
-                              │
-                              ▼
-                            Agent
-\`\`\`
+```text
+              ┌──────────────┐
+              │    Agent     │
+              └──────┬───────┘
+                     │
+                 Tool needed?
+                /           \
+              YES            NO
+               │              │
+               ▼              ▼
+          ┌─────────┐       END
+          │  Tools  │
+          └────┬────┘
+               │
+               └──────────────┐
+                              │
+                              ▼
+                            Agent
+```
 
-This is where **\*\*LangGraph\*\*** becomes extremely useful.
+This is where ****LangGraph**** becomes extremely useful.
 
 **---**
 
@@ -1513,29 +1513,29 @@ This is where **\*\*LangGraph\*\*** becomes extremely useful.
 
 The final project should become something like:
 
-\`\`\`text
-                    USER
-                      │
-                      ▼
-                 ┌─────────┐
-                 │ PLANNER │
-                 └────┬────┘
-                      │
-                      ▼
-                 ┌─────────┐
-                 │ AGENT   │◄─────────────┐
-                 └────┬────┘              │
-                      │                   │
-                 Need tool?               │
-                  /      \                │
-                YES       NO               │
-                 │         │               │
-                 ▼         ▼               │
-              TOOLS      ANSWER            │
-                 │                         │
-                 ▼                         │
-             TOOL RESULT ─────────────────┘
-\`\`\`
+```text
+                    USER
+                      │
+                      ▼
+                 ┌─────────┐
+                 │ PLANNER │
+                 └────┬────┘
+                      │
+                      ▼
+                 ┌─────────┐
+                 │ AGENT   │◄─────────────┐
+                 └────┬────┘              │
+                      │                   │
+                 Need tool?               │
+                /      \                  │
+              YES       NO                │
+               │         │                │
+               ▼         ▼                │
+             TOOLS     ANSWER             │
+               │                          │
+               ▼                          │
+           TOOL RESULT ───────────────────┘
+```
 
 Eventually the agent should be able to research real topics and produce useful reports.
 
@@ -1563,23 +1563,23 @@ This is **not RAG yet**. RAG will come later, after we have a reliable document 
 
 The biggest thing learned in this project is that an AI agent is not simply:
 
-\`\`\`text
+```text
 AI + prompt
-\`\`\`
+```
 
 A useful agent is a system where:
 
-\`\`\`text
+```text
 LLM
- +
++
 State
- +
++
 Tools
- +
++
 Decision making
- +
++
 Workflow
-\`\`\`
+```
 
 work together.
 
@@ -1599,13 +1599,13 @@ That is the foundation we will use to build the full AI Research Agent.
 
 From the Codespace terminal:
 
-\`\`\`bash
+```bash
 uv run main.py
-\`\`\`
+```
 
 The project runs inside the GitHub Codespace environment.
 
-If the project is later downloaded to another computer, the dependencies can be recreated from the project configuration using \`uv\`.
+If the project is later downloaded to another computer, the dependencies can be recreated from the project configuration using `uv`.
 
 **---**
 
@@ -1613,27 +1613,27 @@ If the project is later downloaded to another computer, the dependencies can be 
 
 Never commit:
 
-\`\`\`text
+```text
 .env
-\`\`\`
+```
 
 to GitHub.
 
 Never put the Gemini API key directly into:
 
-\`\`\`python
+```python
 main.py
-\`\`\`
+```
 
 Never share the API key publicly.
 
 Use:
 
-\`\`\`text
-GEMINI\_API\_KEY=...
-\`\`\`
+```text
+GEMINI_API_KEY=...
+```
 
-inside \`.env\`.
+inside `.env`.
 
 **---**
 
