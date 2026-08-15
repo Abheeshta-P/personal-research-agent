@@ -1,10 +1,10 @@
 [project]
-name = "codespaces-blank"
+name = "ai-research-agent"
 version = "0.1.0"
-description = "Add your description here"
+description = "A step-by-step AI research agent built with Python, Gemini, LangChain, and LangGraph"
 readme = "README.md"
 authors = [
-    { name = "Abheeshta P", email = "abheeshta.p.sclera@gmail.com" }
+    { name = "Abheeshta-P", email = "softwarecheck01+github@gmail.com" }
 ]
 requires-python = ">=3.12"
 dependencies = [
@@ -14,10 +14,3 @@ dependencies = [
     "python-dotenv>=1.2.2",
     "requests>=2.34.2",
 ]
-
-[project.scripts]
-codespaces-blank = "codespaces_blank:main"
-
-[build-system]
-requires = ["uv_build>=0.12.4,<0.13.0"]
-build-backend = "uv_build"
