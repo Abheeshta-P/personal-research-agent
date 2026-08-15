@@ -1,0 +1,61 @@
+                         USER
+                           │
+                           ▼
+                    ┌─────────────┐
+                    │    AGENT    │
+                    │   Gemini    │
+                    └──────┬──────┘
+                           │
+              ┌────────────┼────────────┐
+              │            │            │
+              ▼            ▼            ▼
+         No tool       Calculator    Research
+              │            │            │
+              │            ▼            ▼
+              │          Result      Research Tool
+              │                         │
+              │              ┌──────────┼──────────┐
+              │              │          │          │
+              │              ▼          ▼          ▼
+              │         Wikipedia    Web?       Files?
+              │
+              └────────────┬────────────┘
+                           │
+                           ▼
+                    ┌─────────────┐
+                    │    AGENT    │
+                    │  evaluates  │
+                    │   results   │
+                    └──────┬──────┘
+                           │
+                           ▼
+                         USER
+
+
+USER
+ │
+ ▼
+GEMINI AGENT
+ │
+ ├── Simple question ───────────────► Answer
+ │
+ ├── Calculation ─► Calculator ─────► Answer
+ │
+ └── Research ────► Researcher
+                         │
+                         ├── Wikipedia
+                         ├── Web
+                         ├── Docs
+                         └── Files
+                              │
+                              ▼
+                       Gather information
+                              │
+                              ▼
+                         Save research
+                              │
+                              ▼
+                           Agent
+                              │
+                              ▼
+                            USER

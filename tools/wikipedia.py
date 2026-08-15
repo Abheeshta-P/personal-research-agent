@@ -16,62 +16,91 @@ def research_wikipedia(topic: str) -> str:
     #     "explaintext":True,
     #     "titles":topic,
     #     }
-    search_params = {
-        "action": "query",
-        "format": "json",
-        "list": "search",
-        "srsearch": topic,
-        "srlimit": 5,
-    }
+  
 
     headers = {
         "User-Agent": "ai-research-agent/0.1"
     }
 
-    response = requests.get(url, params=search_params, headers=headers)
-
-    print(response.status_code)
-
-    data = response.json()
-
-    search_results = data["query"]["search"]
-
-    print(search_results)
-
-    if not search_results:
-        return f"No Wikipedia article found for: {topic}"
-
-    title = search_results[0]["title"]
-
-    print(f"Found article: {title}")
-
-    article_params = {
-        "action": "query",
-        "format": "json",
-        "prop": "extracts",
-        "explaintext": True,
-        "titles": title,
+    # exact search 
+    exact_params = {
+    "action": "query",
+    "format": "json",
+    "prop": "extracts",
+    "explaintext": True,
+    "titles": topic,
     }
 
-    response = requests.get(
+    exact_response = requests.get(
         url,
-        params=article_params,
-        headers=headers,
+        params=exact_params,
+        headers=headers
     )
 
-    print(response.status_code)
+    print(exact_response.status_code)
+    exact_data = exact_response.json()
 
-    article_data = response.json()
-
-    pages = article_data["query"]["pages"]
+    pages = exact_data["query"]["pages"]
     page = next(iter(pages.values()))
 
-    extract = page.get("extract")
+    if "missing" in page:
+        return f"No exact Wikipedia article found for: {topic}"
 
-    if not extract:
-        return f"No article content found for: {title}"
+    # 1. random rank search 
+    # search_params = {
+    #     "action": "query",
+    #     "format": "json",
+    #     "list": "search",
+    #     "srsearch": topic,
+    #     "srlimit": 5,
+    # }
 
-    return extract
+    # response = requests.get(url, params=search_params, headers=headers)
+
+    # print(response.status_code)
+
+    # data = response.json()
+
+    # search_results = data["query"]["search"]
+
+    # print(search_results)
+
+    # if not search_results:
+    #     return f"No Wikipedia article found for: {topic}"
+
+    # title = search_results[0]["title"]
+
+    # print(f"Found article: {title}")
+
+    # 2. as per title article data 
+
+    # article_params = {
+    #     "action": "query",
+    #     "format": "json",
+    #     "prop": "extracts",
+    #     "explaintext": True,
+    #     "titles": title,
+    # }
+
+    # response = requests.get(
+    #     url,
+    #     params=article_params,
+    #     headers=headers,
+    # )
+
+    # print(response.status_code)
+
+    # article_data = response.json()
+
+    # pages = article_data["query"]["pages"]
+    # page = next(iter(pages.values()))
+
+    # extract = page.get("extract")
+
+    # if not extract:
+    #     return f"No article content found for: {title}"
+
+    # return extract
 
     # return str(article_data)
 
