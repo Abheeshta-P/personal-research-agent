@@ -1,14 +1,13 @@
-**# 🤖 Building an AI Agent with Gemini, LangChain & LangGraph**
+# 🤖 Building an AI Agent with Gemini, LangChain & LangGraph
 
 This project is my step-by-step journey learning how to build an AI agent using Python.
 
-The goal is not just to copy code from a tutorial. The goal is to understand ****how an AI agent actually works****, starting from a simple Gemini API call and gradually building toward a proper agent with tools, memory, web research, and LangGraph.
+The goal is not just to copy code from a tutorial. The goal is to understand how an AI agent actually works, starting from a simple Gemini API call and gradually building toward a proper agent with tools, memory, web research, and LangGraph.
 
-**---**
 
-**# 📚 What We Are Building**
+# 📚 What We Are Building
 
-The eventual goal is an ****AI Research Agent****.
+The eventual goal is an AI Research Agent.
 
 For example, I want to eventually be able to ask:
 
@@ -40,21 +39,17 @@ The eventual architecture will look something like:
                 FINAL REPORT
 ```
 
-But we are building this ****one concept at a time****.
+But we are building this one concept at a time.
 
-**---**
+# 🛠️ Technologies
 
-**# 🛠️ Technologies**
-
-**## Python**
+## Python
 
 Python is the programming language used to build the application.
 
 We use Python because it has a huge ecosystem for AI, automation, APIs, web applications, data processing, and machine learning.
 
-**---**
-
-**## uv**
+## uv
 
 `uv` is our Python project and dependency manager.
 
@@ -77,9 +72,7 @@ pyproject.toml
 uv.lock
 ```
 
-**---**
-
-**# 🧠 Why LangChain?**
+# 🧠 Why LangChain?
 
 We could communicate with Gemini directly using Google's API.
 
@@ -119,12 +112,10 @@ LangChain gives us useful abstractions for working with:
 * Agents
 * Prompts
 * Model integrations
+* 
+So LangChain helps us build the components around the model.
 
-So LangChain helps us build the ****components around the model****.
-
-**---**
-
-**# 🧩 Why LangGraph?**
+# 🧩 Why LangGraph?
 
 LangGraph will eventually control the workflow of our agent.
 
@@ -168,9 +159,7 @@ Tool    END
 
 We haven't started using LangGraph yet because we first wanted to understand what is happening underneath.
 
-**---**
-
-**# 🤖 Why Gemini?**
+# 🤖 Why Gemini?
 
 We originally considered OpenAI, but decided to use Google's Gemini API instead.
 
@@ -190,9 +179,9 @@ The LangChain integration is provided by:
 langchain-google-genai
 ```
 
-**---**
 
-**# 📦 Project Setup**
+
+# 📦 Project Setup
 
 We started with a blank GitHub Codespace.
 
@@ -210,9 +199,7 @@ uv init
 
 This created the Python project configuration.
 
-**---**
-
-**# 📥 Installing Dependencies**
+# 📥 Installing Dependencies
 
 We installed:
 
@@ -222,25 +209,23 @@ uv add langchain langgraph python-dotenv langchain-google-genai
 
 These packages are used for different purposes.
 
-**### `langchain`**
+### `langchain`
 
 The main LangChain framework.
 
-**### `langgraph`**
+### `langgraph`
 
 Used later to build the actual agent workflow.
 
-**### `python-dotenv`**
+### `python-dotenv`
 
 Allows us to load secrets such as our Gemini API key from a `.env` file.
 
-**### `langchain-google-genai`**
+### `langchain-google-genai`
 
 Connects LangChain to Google's Gemini models.
 
-**---**
-
-**# 🔐 API Key**
+# 🔐 API Key
 
 We do NOT put the Gemini API key directly into Python code.
 
@@ -266,15 +251,13 @@ __pycache__/
 
 This prevents the API key from accidentally being committed to GitHub.
 
-**## Important**
+## Important
 
 Never publish or share the real API key.
 
 If a key is accidentally exposed, it should be revoked/replaced.
 
-**---**
-
-**# 📁 Current Project Structure**
+# 📁 Current Project Structure
 
 Our project has now grown beyond the original single-file setup.
 
@@ -303,9 +286,7 @@ The `tools/` directory contains our LangChain tools.
 * `calculator.py` contains the calculator tool.
 * `wikipedia.py` contains the first version of our Wikipedia research tool.
 
-**---**
-
-**# 🚀 Step 1 — First Gemini Program**
+# 🚀 Step 1 — First Gemini Program
 
 The first thing we wanted to prove was:
 
@@ -326,9 +307,7 @@ from dotenv import load_dotenv
 from langchain_google_genai import ChatGoogleGenerativeAI
 ```
 
-**---**
-
-**# 🔑 Step 2 — Loading the API Key**
+# 🔑 Step 2 — Loading the API Key
 
 We added:
 
@@ -341,7 +320,7 @@ if not api_key:
     raise ValueError("GEMINI_API_KEY is not set!")
 ```
 
-**## What is happening?**
+## What is happening?
 
 `load_dotenv()` reads the `.env` file.
 
@@ -362,9 +341,9 @@ if not api_key:
 
 makes the program stop with a useful error if the key is missing.
 
-**---**
 
-**# 🧠 Step 3 — Creating the Gemini Model**
+
+# 🧠 Step 3 — Creating the Gemini Model
 
 We created:
 
@@ -389,9 +368,9 @@ Gemini
 
 At this point, `model` represents the Gemini model we can communicate with.
 
-**---**
 
-**# 💬 Step 4 — First Gemini Request**
+
+# 💬 Step 4 — First Gemini Request
 
 Initially we used a hard-coded question:
 
@@ -423,9 +402,9 @@ Gemini response
 Python
 ```
 
-**---**
 
-**# 🔍 Step 5 — Understanding the Response**
+
+# 🔍 Step 5 — Understanding the Response
 
 One important lesson happened here.
 
@@ -464,9 +443,9 @@ The lesson:
 
 This becomes very important when we start dealing with tool calls.
 
-**---**
 
-**# ⌨️ Step 6 — Making the Program Interactive**
+
+# ⌨️ Step 6 — Making the Program Interactive
 
 We didn't want the question permanently written into the program.
 
@@ -510,9 +489,9 @@ Gemini
 Answer
 ```
 
-**---**
 
-**# 🎭 Step 7 — System and Human Messages**
+
+# 🎭 Step 7 — System and Human Messages
 
 We then introduced a system instruction.
 
@@ -536,7 +515,7 @@ response = model.invoke([
 
 Now Gemini receives two different types of messages.
 
-**## System**
+## System
 
 ```text
 You are a helpful AI research assistant.
@@ -544,7 +523,7 @@ You are a helpful AI research assistant.
 
 This tells the model how it should behave.
 
-**## Human**
+## Human
 
 ```text
 The user's actual question.
@@ -568,9 +547,9 @@ HUMAN
 
 This distinction becomes important when building agents.
 
-**---**
 
-**# 🛠️ Step 8 — Creating Our First Tool**
+
+# 🛠️ Step 8 — Creating Our First Tool
 
 Now we moved from a chatbot toward an agent.
 
@@ -605,9 +584,9 @@ def calculator(a: float, b: float) -> float:
     return a + b
 ```
 
-**---**
 
-**# 🧠 What Does `@tool` Do?**
+
+# 🧠 What Does `@tool` Do?
 
 Without `@tool`, this is simply a Python function:
 
@@ -622,7 +601,7 @@ With:
 @tool
 ```
 
-LangChain knows that this function should be treated as a ****tool available to an AI model****.
+LangChain knows that this function should be treated as a tool available to an AI model.
 
 Conceptually:
 
@@ -646,9 +625,9 @@ is also important because it describes what the tool does.
 
 The model can use this information when deciding whether the tool is useful.
 
-**---**
 
-**# 🔌 Step 9 — Giving the Tool to Gemini**
+
+# 🔌 Step 9 — Giving the Tool to Gemini
 
 We created:
 
@@ -672,9 +651,9 @@ we used:
 model_with_tools.invoke(...)
 ```
 
-**---**
 
-**# 🤯 Step 10 — The Empty Response**
+
+# 🤯 Step 10 — The Empty Response
 
 We tested:
 
@@ -708,9 +687,9 @@ Gemini had decided:
 
 But Gemini had not actually executed our Python function.
 
-**---**
 
-**# 🔎 Step 11 — Inspecting the Response**
+
+# 🔎 Step 11 — Inspecting the Response
 
 Instead of:
 
@@ -741,7 +720,7 @@ tool_calls=[
 
 This was a major learning moment.
 
-Gemini had produced a ****tool call****.
+Gemini had produced a tool call.
 
 It essentially said:
 
@@ -756,21 +735,21 @@ calculator(
 
 The AI wasn't directly running our Python function.
 
-It was ****requesting that our application run it****.
+It was requesting that our application run it.
 
-**---**
 
-**# 🧠 The Important Difference**
+
+# 🧠 The Important Difference
 
 This distinction is extremely important:
 
-**## Gemini decides**
+## Gemini decides
 
 ```text
 "I need a calculator."
 ```
 
-**## Our Python program executes**
+## Our Python program executes
 
 ```python
 calculator(29, 9)
@@ -780,9 +759,9 @@ The model itself does not magically execute arbitrary Python code.
 
 Our application is responsible for executing tools safely.
 
-**---**
 
-**# 🔄 Step 12 — Executing the Tool**
+
+# 🔄 Step 12 — Executing the Tool
 
 We checked:
 
@@ -840,9 +819,9 @@ and get:
 Calculator result: 38.0
 ```
 
-**---**
 
-**# 🔁 Step 13 — Completing the Agent Loop**
+
+# 🔁 Step 13 — Completing the Agent Loop
 
 But there was still a problem.
 
@@ -944,9 +923,9 @@ and print:
 print(final_response.text)
 ```
 
-**---**
 
-**# 🔄 The Complete Flow We Have Built**
+
+# 🔄 The Complete Flow We Have Built
 
 We now understand the basic mechanism behind a tool-using agent:
 
@@ -980,11 +959,11 @@ We now understand the basic mechanism behind a tool-using agent:
 
 This is the fundamental idea we wanted to understand before introducing LangGraph.
 
-**---**
 
-**# 🧪 What We Have Learned So Far**
 
-**## 1. A model is not an agent**
+# 🧪 What We Have Learned So Far
+
+## 1. A model is not an agent
 
 A basic model call is:
 
@@ -998,9 +977,9 @@ Answer
 
 That alone is not a full agent.
 
-**---**
 
-**## 2. Agents can use tools**
+
+## 2. Agents can use tools
 
 We created:
 
@@ -1016,9 +995,9 @@ and made it available to Gemini with:
 model.bind_tools([calculator])
 ```
 
-**---**
 
-**## 3. The model can request a tool**
+
+## 3. The model can request a tool
 
 Gemini returned something like:
 
@@ -1036,9 +1015,9 @@ tool_calls=[
 
 This is different from a normal text response.
 
-**---**
 
-**## 4. Our application executes the tool**
+
+## 4. Our application executes the tool
 
 The Python program is responsible for:
 
@@ -1050,9 +1029,9 @@ The model requests the action.
 
 Our program performs the action.
 
-**---**
 
-**## 5. The result goes back to the model**
+
+## 5. The result goes back to the model
 
 The model needs the tool result to continue reasoning and generate a final answer.
 
@@ -1072,9 +1051,9 @@ Model
 Final answer
 ```
 
-**---**
 
-**# 🧭 Step 14 — Introducing LangGraph**
+
+# 🧭 Step 14 — Introducing LangGraph
 
 After understanding the manual tool-calling loop, we moved the workflow into LangGraph.
 
@@ -1114,9 +1093,9 @@ response = model_with_tools.invoke(state["messages"])
 
 and returns the response back into the state.
 
-**---**
 
-**# 🔀 Step 15 — Conditional Routing**
+
+# 🔀 Step 15 — Conditional Routing
 
 We created a routing function that checks whether Gemini requested a tool:
 
@@ -1156,9 +1135,9 @@ Tool call?
 
 This is the agent loop we previously wrote manually.
 
-**---**
 
-**# 🛠️ Step 16 — ToolNode**
+
+# 🛠️ Step 16 — ToolNode
 
 Instead of manually calling:
 
@@ -1200,9 +1179,9 @@ Gemini
 
 The `ToolMessage` is associated with the exact tool request using the tool-call ID.
 
-**---**
 
-**# 🧪 Step 17 — First Successful LangGraph Agent Run**
+
+# 🧪 Step 17 — First Successful LangGraph Agent Run
 
 We tested:
 
@@ -1228,13 +1207,13 @@ AIMessage
 
 This proved that the complete LangGraph tool loop works.
 
-**---**
 
-**# 🔬 Step 18 — Starting the Research Tool**
+
+# 🔬 Step 18 — Starting the Research Tool
 
 After the calculator agent worked, we decided to add research capability.
 
-The long-term goal is a **Personal Research Agent** that can eventually:
+The long-term goal is a Personal Research Agent that can eventually:
 
 1. Answer simple questions directly.
 2. Use the calculator when necessary.
@@ -1245,7 +1224,7 @@ The long-term goal is a **Personal Research Agent** that can eventually:
 7. Eventually use RAG/vector search.
 8. Potentially remember previous research.
 
-We intentionally did **not** add every research source at once.
+We intentionally did not add every research source at once.
 
 We started with one source: Wikipedia.
 
@@ -1267,9 +1246,9 @@ Gemini continues
 
 Wikipedia is only the first source. Later sources could include official documentation, ArXiv, general web pages, news, YouTube transcripts, and user files.
 
-**---**
 
-**# 📦 Step 19 — Creating the Wikipedia Tool**
+
+# 📦 Step 19 — Creating the Wikipedia Tool
 
 We created:
 
@@ -1299,9 +1278,9 @@ research_wikipedia.invoke({"topic": "LangGraph"})
 
 This confirmed that the tool itself could be invoked through LangChain.
 
-**---**
 
-**# ⚠️ Step 20 — The First Wikipedia Package Attempt**
+
+# ⚠️ Step 20 — The First Wikipedia Package Attempt
 
 We initially tried using the Python `wikipedia` package.
 
@@ -1320,7 +1299,7 @@ Expecting value: line 1 column 1 (char 0)
 
 The traceback showed that the failure happened while the package was trying to parse Wikipedia's HTTP response as JSON.
 
-The important lesson was that the problem was **inside the Wikipedia wrapper**, not in our LangChain tool or LangGraph architecture.
+The important lesson was that the problem was inside the Wikipedia wrapper, not in our LangChain tool or LangGraph architecture.
 
 We therefore removed the package:
 
@@ -1330,9 +1309,9 @@ uv remove wikipedia
 
 We decided to communicate with Wikipedia's API directly instead.
 
-**---**
 
-**# 🌐 Step 21 — Direct Wikipedia API**
+
+# 🌐 Step 21 — Direct Wikipedia API
 
 We installed the HTTP library:
 
@@ -1386,9 +1365,9 @@ so that we can inspect the raw API response before extracting the useful article
 
 The next step is to parse the JSON response and extract the actual article text.
 
-**---**
 
-**# 🧱 Why We Are Going to Use LangGraph**
+
+# 🧱 Why We Are Going to Use LangGraph
 
 At the moment, we manually wrote the workflow:
 
@@ -1453,13 +1432,12 @@ Eventually we'll have something like:
                             Agent
 ```
 
-This is where ****LangGraph**** becomes extremely useful.
+This is where LangGraph becomes extremely useful.
 
-**---**
 
-**# 🗺️ Our Learning Roadmap**
 
-**## Completed**
+# 🗺️ Our Learning Roadmap
+## Completed
 
 * [x] Create Python project with `uv`
 * [x] Install LangChain
@@ -1490,7 +1468,7 @@ This is where ****LangGraph**** becomes extremely useful.
 * [x] Make a direct Wikipedia API request
 * [x] Inspect the raw API response
 
-**## Next**
+## Next
 
 * [ ] Parse the Wikipedia JSON response
 * [ ] Extract useful article content
@@ -1507,9 +1485,9 @@ This is where ****LangGraph**** becomes extremely useful.
 * [ ] Add a user interface
 * [ ] Eventually deploy the project
 
-**---**
 
-**# 🎯 Final Goal**
+
+# 🎯 Final Goal
 
 The final project should become something like:
 
@@ -1555,11 +1533,11 @@ Markdown file
 Agent
 ```
 
-This is **not RAG yet**. RAG will come later, after we have a reliable document collection and retrieval pipeline.
+This is not RAG yet. RAG will come later, after we have a reliable document collection and retrieval pipeline.
 
-**---**
 
-**# 💡 The Most Important Lesson So Far**
+
+# 💡 The Most Important Lesson So Far
 
 The biggest thing learned in this project is that an AI agent is not simply:
 
@@ -1593,9 +1571,9 @@ The process can repeat until the task is complete.
 
 That is the foundation we will use to build the full AI Research Agent.
 
-**---**
 
-**# ▶️ Running the Project**
+
+# ▶️ Running the Project
 
 From the Codespace terminal:
 
@@ -1607,9 +1585,9 @@ The project runs inside the GitHub Codespace environment.
 
 If the project is later downloaded to another computer, the dependencies can be recreated from the project configuration using `uv`.
 
-**---**
 
-**# 🔒 Security Reminder**
+
+# 🔒 Security Reminder
 
 Never commit:
 
@@ -1635,9 +1613,9 @@ GEMINI_API_KEY=...
 
 inside `.env`.
 
-**---**
 
-**# 📌 Current Status**
+
+# 📌 Current Status
 
 We have successfully gone from:
 
@@ -1687,6 +1665,6 @@ Wikipedia API
 Raw JSON response
 ```
 
-The current stopping point is **after Step 21**: we have successfully made a direct request to Wikipedia's API and are returning the raw response.
+The current stopping point is after Step 21: we have successfully made a direct request to Wikipedia's API and are returning the raw response.
 
 The immediate next step is to parse that JSON and extract the useful article content before saving it as Markdown.
