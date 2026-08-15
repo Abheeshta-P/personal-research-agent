@@ -37,9 +37,16 @@ model = ChatGoogleGenerativeAI(
 #     """Add two numbers together."""
 #     return a + b
 
-model_with_tools = model.bind_tools([calculator])
+model_with_tools = model.bind_tools([
+    calculator,
+    research_wikipedia,
+])
+
 # make this tool a node 
-tool_node = ToolNode([calculator])
+tool_node = ToolNode([
+    calculator,
+    research_wikipedia,
+])
 
 class AgentState:
     messages: Annotated[list[AnyMessage],add_messages]
@@ -55,9 +62,17 @@ graph_builder = StateGraph(AgentState)
 #     print("Current state:", state)
 
 #     return {}
+
 def agent(state: AgentState):
     # response = model.invoke(state["messages"])
     response = model_with_tools.invoke(state["messages"])
+
+    if response.tool_calls:
+        for tool_call in response.tool_calls:
+            print(f"Agent called tool: {tool_call['name']}")
+            print(f"Arguments: {tool_call['args']}")
+    else:
+        print(f"Final answer: {response.text}")
 
     return {
         "messages": [response]
@@ -96,8 +111,16 @@ graph = graph_builder.compile()
 #     ]
 # })
 
-result = research_wikipedia.invoke({"topic": "LangGraph"})
-print(result)
+# result = research_wikipedia.invoke({"topic": "LangGraph"})
+# print(result)
+
+result = graph.invoke({
+    "messages": [
+        HumanMessage(content="What is LangGraph?")
+    ]
+})
+
+# print(result["messages"][-1].text)
 
                 #          USER
                 #            │

@@ -44,7 +44,31 @@ def research_wikipedia(topic: str) -> str:
     page = next(iter(pages.values()))
 
     if "missing" in page:
-        return f"No exact Wikipedia article found for: {topic}"
+        print(f"No exact Wikipedia article found for: {topic}")
+
+        search_params = {
+            "action": "query",
+            "format": "json",
+            "list": "search",
+            "srsearch": topic,
+            "srlimit": 5,
+        }
+
+        search_response = requests.get(
+            url,
+            params=search_params,
+            headers=headers,
+        )
+
+        print(search_response.status_code)
+
+        search_data = search_response.json()
+        search_results = search_data["query"]["search"]
+
+        if not search_results:
+            return f"No Wikipedia results found for: {topic}"
+
+        return search_results
 
     # 1. random rank search 
     # search_params = {
