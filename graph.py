@@ -45,15 +45,32 @@ model_with_tools = model.bind_tools([
 # make this tool a node 
 tool_node = ToolNode([
     calculator,
+    # research_wikipedia,
+])
+
+research_model = model.bind_tools([
     research_wikipedia,
 ])
 
+
+# the researcher doesnt have normal nodes like just llm most are tool nodes 
+research_tool_node = ToolNode([
+    research_wikipedia,
+])
+
+# each node looks like this in that graph 
 class AgentState:
     messages: Annotated[list[AnyMessage],add_messages]
 
+# Make the research request itself a tool/route that Gemini can choose.
+class ResearchState: 
+    messages: Annotated[list[AnyMessage], add_messages]
+
 graph_builder = StateGraph(AgentState)
+research_builder = StateGraph(ResearchState)
 
 #node
+
 # def agent(state:AgentState):
 #     print("Agent node running!")
 #     return {} #"Don't modify the state."
@@ -78,11 +95,35 @@ def agent(state: AgentState):
         "messages": [response]
     }
 
+def researcher(state:ResearchState):
+    response = research_model.invoke(state["messages"])
+
+    if response.tool_calls:
+        for tool_call in response.tool_calls:
+            print(f"Researcher called tool: {tool_call['name']}")
+            print(f"Arguments: {tool_call['args']}")
+    else:
+        print(f"Researcher answer: ${response.text}")
+    
+    return {
+        "messages":[response]
+    }
+
 def should_continue(state: AgentState):
     last_message = state["messages"][-1]
 
     if last_message.tool_calls:
         return "tools"
+
+    return END
+
+def research_should_continue(state: ResearchState):
+    last_message = state["messages"][-1]
+
+    # it will choose the tool out of the list 
+    if last_message.tool_calls:
+        return "research_tools"
+    
     return END
 
 # adding node 
@@ -104,6 +145,20 @@ graph_builder.add_edge("tools", "agent")
 #complete the graph/ create it
 graph = graph_builder.compile()
 
+# every graph starts with an llm call
+research_builder.add_node("researcher", researcher)
+research_builder.add_node("research_tools", research_tool_node)
+
+research_builder.add_edge(START, "researcher")
+research_builder.add_conditional_edges(
+    "researcher",
+    research_should_continue
+)
+# tool call should return result to agent 
+research_builder.add_edge("research_tools", "researcher")
+
+research_graph = research_builder.compile()
+
 #run
 # result = graph.invoke({
 #     "messages":[
@@ -114,9 +169,15 @@ graph = graph_builder.compile()
 # result = research_wikipedia.invoke({"topic": "LangGraph"})
 # print(result)
 
-result = graph.invoke({
+# result = graph.invoke({
+#     "messages": [
+#         HumanMessage(content="What is LangGraph?")
+#     ]
+# })
+
+result = research_graph.invoke({
     "messages": [
-        HumanMessage(content="What is LangGraph?")
+        HumanMessage(content="Research LangGraph on Wikipedia")
     ]
 })
 
@@ -155,3 +216,16 @@ result = graph.invoke({
                 #           │
                 #           ▼
                 #          END
+
+        #                  USER
+        #                    │
+        #                    ▼
+        #              GEMINI AGENT
+        #                    │
+        #      ┌─────────────┼─────────────┐
+        #      │             │             │
+        #      ▼             ▼             ▼
+        #   Answer       Calculator     Research
+        #                                 │
+        #                                 ▼
+        #                            RESEARCHER
