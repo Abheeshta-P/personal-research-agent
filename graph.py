@@ -28,7 +28,10 @@ from tools.wikipedia import research_wikipedia
 load_dotenv()
 
 model = ChatGoogleGenerativeAI(
-    model="gemini-3.6-flash"
+    # model="gemini-3.6-flash"
+    # model="gemini-3.5-flash-lite",
+    model="gemini-3.1-flash-lite",
+    thinking_level="minimal",
 )
 
 # tools
@@ -37,15 +40,31 @@ model = ChatGoogleGenerativeAI(
 #     """Add two numbers together."""
 #     return a + b
 
+# make the researcher as tool for main agent graph 
+@tool
+def research(topic: str) -> str:
+    """Research a topic using the research agent and Wikipedia."""
+
+    # call the llm with research tool as first step 
+    result = research_graph.invoke({
+        "messages": [
+            HumanMessage(content="Research LangGraph on Wikipedia")
+        ]
+    })
+
+    return result["messages"][-1].text
+
 model_with_tools = model.bind_tools([
     calculator,
-    research_wikipedia,
+    # research_wikipedia,
+    research,
 ])
 
 # make this tool a node 
 tool_node = ToolNode([
     calculator,
-    # research_wikipedia,
+    # research_wikipedia, add the researcher as a tool instead
+    research,
 ])
 
 research_model = model.bind_tools([
@@ -175,13 +194,22 @@ research_graph = research_builder.compile()
 #     ]
 # })
 
-result = research_graph.invoke({
+# result = research_graph.invoke({
+#     "messages": [
+#         HumanMessage(content="Research LangGraph on Wikipedia")
+#     ]
+# })
+
+result = graph.invoke({
     "messages": [
-        HumanMessage(content="Research LangGraph on Wikipedia")
+        # HumanMessage(content="Research LangGraph")
+        # HumanMessage(content="What is the capital of France?")
+        # HumanMessage(content="What is 25 multiplied by 8?")
+        HumanMessage(content="Tell me about LangGraph and explain how it works.")
     ]
 })
 
-# print(result["messages"][-1].text)
+print(f"\n\nFINAL RESULT: \n{result["messages"][-1].text}")
 
                 #          USER
                 #            │
