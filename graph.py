@@ -7,7 +7,7 @@ from langgraph.graph import StateGraph, START, END
 
 from typing import Annotated, TypedDict
 # We're going to use it to tell LangGraph how the messages state should be updated.
-from langchain_core.messages import AnyMessage, HumanMessage
+from langchain_core.messages import AnyMessage, HumanMessage, SystemMessage
 # HumanMessage
 # AIMessage
 # ToolMessage
@@ -48,7 +48,7 @@ def research(topic: str) -> str:
     # call the llm with research tool as first step 
     result = research_graph.invoke({
         "messages": [
-            HumanMessage(content="Research LangGraph on Wikipedia")
+           HumanMessage(content=f"Research {topic} on Wikipedia")
         ]
     })
 
@@ -101,7 +101,32 @@ research_builder = StateGraph(ResearchState)
 
 def agent(state: AgentState):
     # response = model.invoke(state["messages"])
-    response = model_with_tools.invoke(state["messages"])
+    # response = model_with_tools.invoke(state["messages"])
+
+    messages = [
+            SystemMessage(content="""
+    You are the main agent.
+
+    Use the research tool when the user asks for:
+    - factual information that may require external sources
+    - current or potentially changing information
+    - detailed explanations where reliable source material is useful
+    - research questions
+
+    Use the calculator for mathematical calculations.
+
+    If the question can be answered reliably without a tool, answer directly.
+    """),
+            *state["messages"]
+    ]
+
+    response = model_with_tools.invoke(messages)
+
+
+    # print("AGENT RESPONSE:")
+    # print(response)
+    # print("TOOL CALLS:")
+    # print(response.tool_calls)
 
     if response.tool_calls:
         for tool_call in response.tool_calls:
@@ -205,7 +230,7 @@ result = graph.invoke({
         # HumanMessage(content="Research LangGraph")
         # HumanMessage(content="What is the capital of France?")
         # HumanMessage(content="What is 25 multiplied by 8?")
-        HumanMessage(content="Tell me about LangGraph and explain how it works.")
+        HumanMessage(content="Tell me about langchain and explain how it works.")
     ]
 })
 
@@ -257,3 +282,21 @@ print(f"\n\nFINAL RESULT: \n{result["messages"][-1].text}")
         #                                 │
         #                                 ▼
         #                            RESEARCHER
+
+#                  RESEARCHER
+#                      │
+#           "What source should I use?"
+#                      │
+#        ┌─────────────┼─────────────┐
+#        ▼             ▼             ▼
+#    Wikipedia        Web          Files
+#        │             │             │
+#        └─────────────┼─────────────┘
+#                      ▼
+#                 Evidence
+#                      │
+#                      ▼
+#                 Researcher
+#                      │
+#                      ▼
+#               Synthesized answer

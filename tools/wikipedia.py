@@ -68,7 +68,45 @@ def research_wikipedia(topic: str) -> str:
         if not search_results:
             return f"No Wikipedia results found for: {topic}"
 
-        return search_results
+        title = search_results[0]["title"]
+
+        print(f"Found Wikipedia article: {title}")
+
+        article_params = {
+            "action": "query",
+            "format": "json",
+            "prop": "extracts",
+            "explaintext": True,
+            "titles": title,
+        }
+
+        article_response = requests.get(
+            url,
+            params=article_params,
+            headers=headers,
+        )
+
+        print(article_response.status_code)
+
+        article_data = article_response.json()
+
+        pages = article_data["query"]["pages"]
+        article_page = next(iter(pages.values()))
+
+        extract = article_page.get("extract")
+
+        if not extract:
+            return f"No article content found for: {title}"
+
+        return extract
+    
+    # normal not missing 
+    extract = page.get("extract")
+
+    if not extract:
+        return f"No article content found for: {topic}"
+
+    return extract
 
     # 1. random rank search 
     # search_params = {
