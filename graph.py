@@ -225,12 +225,14 @@ research_graph = research_builder.compile()
 #     ]
 # })
 
+question = input("What's on your mind?: ")
+
 result = graph.invoke({
     "messages": [
         # HumanMessage(content="Research LangGraph")
         # HumanMessage(content="What is the capital of France?")
         # HumanMessage(content="What is 25 multiplied by 8?")
-        HumanMessage(content="Tell me about langchain and explain how it works.")
+        HumanMessage(content=question)
     ]
 })
 
