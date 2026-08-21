@@ -23,7 +23,8 @@ from langgraph.prebuilt import ToolNode
 
 # tool
 from tools.calculator import calculator
-from tools.wikipedia import research_wikipedia
+# from tools.wikipedia import research_wikipedia
+from tools.wikipedia import search_wikipedia, get_wikipedia_article
 
 load_dotenv()
 
@@ -67,14 +68,24 @@ tool_node = ToolNode([
     research,
 ])
 
+# research_model = model.bind_tools([
+#     research_wikipedia,
+# ])
+
+
+# # the researcher doesnt have normal nodes like just llm most are tool nodes 
+# research_tool_node = ToolNode([
+#     research_wikipedia,
+# ])
+
 research_model = model.bind_tools([
-    research_wikipedia,
+    search_wikipedia,
+    get_wikipedia_article,
 ])
 
-
-# the researcher doesnt have normal nodes like just llm most are tool nodes 
 research_tool_node = ToolNode([
-    research_wikipedia,
+    search_wikipedia,
+    get_wikipedia_article,
 ])
 
 # each node looks like this in that graph 
