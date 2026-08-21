@@ -57,7 +57,7 @@ def research(topic: str) -> str:
     # call the llm with research tool as first step 
     result = research_graph.invoke({
         "messages": [
-           HumanMessage(content=f"Research {topic} on Wikipedia")
+           HumanMessage(content=f"Research {topic}")
         ]
     })
 
@@ -149,7 +149,7 @@ def researcher(state:ResearchState):
     needs_web = any(word in user_query for word in current_keywords)
 
     if needs_web:
-        research_model = model.bind_tools([search_web])
+        research_model = model.bind_tools([search_web]) #injects state automatically
     else:
         research_model = model.bind_tools([
             search_wikipedia,
@@ -160,7 +160,7 @@ def researcher(state:ResearchState):
     searches = state.get("searches_done", [])
 
     messages = [
-        SystemMessage(content=f"""
+       SystemMessage(content=f"""
         You are a research agent.
 
         Choose tools based on the question:
@@ -173,17 +173,18 @@ def researcher(state:ResearchState):
         Previous searches:
         {searches}
 
-        Do not repeat or rephrase a previous search unless it is genuinely necessary
-        to obtain new evidence.
-
-        Research only when it adds new evidence.
-        Stop when you have sufficient reliable evidence.
+        Rules:
+        - Do not repeat a previous search.
+        - Do not rephrase a previous search just to search the same information again.
+        - If a tool says the query was already searched, stop researching.
+        - Continue researching only when a genuinely new search can add evidence.
+        - Stop when you have sufficient reliable evidence.
 
         At the end, provide:
         1. A concise synthesized answer.
-        2. A Sources section containing only the URLs actually used.
+        2. A Sources section containing only URLs actually used.
         """),
-        
+
         *state["messages"]
     ]
 
@@ -200,6 +201,24 @@ def researcher(state:ResearchState):
         "messages":[response]
     }
 
+# state update node
+
+def update_searches(state: ResearchState):
+    last_message = state["messages"][-2] #gets the tool message not ai
+
+    searches = state.get("searches_done", []).copy()
+
+    for tool_call in last_message.tool_calls:
+        if tool_call["name"] == "search_web":
+            topic = tool_call["args"]["topic"].lower()
+
+            if topic not in searches:
+                searches.append(topic)
+
+    return {
+        "searches_done": searches
+    }
+    
 # conditional rendering of tools
 def should_continue(state: AgentState):
     last_message = state["messages"][-1]
@@ -237,6 +256,7 @@ graph = graph_builder.compile()
 
 # every graph starts with an llm call
 research_builder.add_node("researcher", researcher)
+research_builder.add_node("update_searches", update_searches)
 research_builder.add_node("research_tools", research_tool_node)
 
 research_builder.add_edge(START, "researcher")
@@ -245,7 +265,9 @@ research_builder.add_conditional_edges(
     research_should_continue
 )
 # tool call should return result to agent 
-research_builder.add_edge("research_tools", "researcher")
+research_builder.add_edge("research_tools", "update_searches")
+# between tool call and researcher
+research_builder.add_edge("update_searches", "researcher")
 
 research_graph = research_builder.compile()
 
@@ -255,11 +277,9 @@ question = input("What's on your mind?: ")
 
 result = graph.invoke({
     "messages": [
-        # HumanMessage(content="Research LangGraph")
-        # HumanMessage(content="What is the capital of France?")
-        # HumanMessage(content="What is 25 multiplied by 8?")
         HumanMessage(content=question)
-    ]
+    ],
+    "searches_done": []
 })
 
 print(f"\n\nFINAL RESULT: \n{result["messages"][-1].text}")

@@ -1,15 +1,18 @@
 from langchain_core.tools import tool
 import requests
 
-from langgraph.prebuilt import ToolNode, InjectedState
+from langgraph.prebuilt import InjectedState
 from typing import Annotated
+# InjectedState injects the graph state into the tool argument automatically.
 
 @tool
-def search_web(topic: str, searches_done: list[str]) -> str:
+def search_web(topic: str, state: Annotated[dict, InjectedState]) -> str:
     """Search the web for a topic."""
 
+    searches_done = state.get("searches_done",[])
+
     if topic.lower() in searches_done:
-        return f"Already searched for: {topic}. Use the existing evidence."
+        return f"Already searched this query: {topic}. Use the existing evidence."
 
     print(f"Searching web for: {topic}")
 
@@ -22,4 +25,4 @@ def search_web(topic: str, searches_done: list[str]) -> str:
         timeout=10
     )
 
-    return f"Searched: {topic}\n\n{response}"
+    return response.text[:5000]
