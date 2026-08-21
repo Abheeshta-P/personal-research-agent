@@ -25,6 +25,7 @@ from langgraph.prebuilt import ToolNode
 from tools.calculator import calculator
 # from tools.wikipedia import research_wikipedia
 from tools.wikipedia import search_wikipedia, get_wikipedia_article
+from tools.web import search_web
 
 load_dotenv()
 
@@ -80,11 +81,13 @@ tool_node = ToolNode([
 
 research_model = model.bind_tools([
     search_wikipedia,
+    search_web,
     get_wikipedia_article,
 ])
 
 research_tool_node = ToolNode([
     search_wikipedia,
+    search_web,
     get_wikipedia_article,
 ])
 
@@ -151,7 +154,29 @@ def agent(state: AgentState):
     }
 
 def researcher(state:ResearchState):
-    response = research_model.invoke(state["messages"])
+    # response = research_model.invoke(state["messages"])
+    messages = [
+       SystemMessage(content="""
+        You are a research agent.
+
+        Choose tools based on the question:
+
+        - Use Wikipedia for general, stable facts and background.
+        - Use Web search for current, recent, changing, or time-sensitive information.
+        - You may use both when useful.
+
+        Always use at least one research tool before answering.
+
+        Your response must:
+        1. Answer the research question using the gathered evidence.
+        2. Include a "Sources" section listing every website/source actually used.
+        3. Do not list sources that were not used.
+        """),
+        
+        *state["messages"]
+    ]
+
+    response = research_model.invoke(messages)
 
     if response.tool_calls:
         for tool_call in response.tool_calls:
