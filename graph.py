@@ -79,11 +79,11 @@ tool_node = ToolNode([
 #     research_wikipedia,
 # ])
 
-research_model = model.bind_tools([
-    search_wikipedia,
-    search_web,
-    get_wikipedia_article,
-])
+# research_model = model.bind_tools([
+#     search_wikipedia,
+#     search_web,
+#     get_wikipedia_article,
+# ])
 
 research_tool_node = ToolNode([
     search_wikipedia,
@@ -155,27 +155,56 @@ def agent(state: AgentState):
 
 def researcher(state:ResearchState):
     # response = research_model.invoke(state["messages"])
+
+    user_query = state["messages"][0].content.lower()
+
+    current_keywords = [
+        "current",
+        "latest",
+        "today",
+        "recent",
+        "now",
+        "president",
+        "weather",
+        "price",
+    ]
+
+    needs_web = any(word in user_query for word in current_keywords)
+
+    if needs_web:
+        research_model = model.bind_tools([search_web])
+    else:
+        research_model = model.bind_tools([
+            search_wikipedia,
+            get_wikipedia_article,
+            search_web,
+        ])
+
     messages = [
-       SystemMessage(content="""
+      SystemMessage(content="""
         You are a research agent.
 
         Choose tools based on the question:
+        - Wikipedia: general, stable facts and background.
+        - Web search: current, recent, changing, or time-sensitive information.
+        - Use both when useful.
 
-        - Use Wikipedia for general, stable facts and background.
-        - Use Web search for current, recent, changing, or time-sensitive information.
-        - You may use both when useful.
+        Always research before answering.
 
-        Always use at least one research tool before answering.
+        Research iteratively only when it adds new evidence.
+        Do not repeat or rephrase a search that has already been performed.
+        After obtaining sufficient reliable evidence, stop researching and answer.
 
-        Your response must:
-        1. Answer the research question using the gathered evidence.
-        2. Include a "Sources" section listing every website/source actually used.
-        3. Do not list sources that were not used.
+        For important claims, prefer authoritative or primary sources.
+
+        At the end, provide:
+        1. A concise synthesized answer.
+        2. A Sources section containing only the URLs actually used.
         """),
         
         *state["messages"]
     ]
-
+   
     response = research_model.invoke(messages)
 
     if response.tool_calls:
