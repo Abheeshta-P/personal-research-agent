@@ -3,30 +3,15 @@
 # For our agent, the most important state will initially be: message
 
 
-#                  RESEARCHER
-#                      │
-#           "What source should I use?"
-#                      │
-#        ┌─────────────┼─────────────┐
-#        ▼             ▼             ▼
-#    Wikipedia        Web          Files
-#        │             │             │
-#        └─────────────┼─────────────┘
-#                      ▼
-#                 Evidence
-#                      │
-#                      ▼
-#                 Researcher
-#                      │
-#                      ▼
-#               Synthesized answer
-
-
 from langgraph.graph import StateGraph, START, END
 
 from typing import Annotated, TypedDict
 # We're going to use it to tell LangGraph how the messages state should be updated.
 from langchain_core.messages import AnyMessage, HumanMessage, SystemMessage
+# HumanMessage
+# AIMessage
+# ToolMessage
+# SystemMessage
 from langgraph.graph.message import add_messages
 # reducer: what to do when state gets updated? replace or add
 
@@ -38,6 +23,7 @@ from langgraph.prebuilt import ToolNode
 
 # tool
 from tools.calculator import calculator
+# from tools.wikipedia import research_wikipedia
 from tools.wikipedia import search_wikipedia, get_wikipedia_article
 from tools.web import search_web
 
@@ -50,6 +36,13 @@ model = ChatGoogleGenerativeAI(
     thinking_level="minimal",
 )
 
+# tools
+# @tool
+# def calculator(a: float, b: float) -> float:
+#     """Add two numbers together."""
+#     return a + b
+
+# make the researcher as tool for main agent graph 
 @tool
 def research(topic: str) -> str:
     """Research a topic using the research agent and Wikipedia."""
@@ -63,8 +56,6 @@ def research(topic: str) -> str:
 
     return result["messages"][-1].text
 
-
-# main model
 model_with_tools = model.bind_tools([
     calculator,
     # research_wikipedia,
@@ -78,7 +69,22 @@ tool_node = ToolNode([
     research,
 ])
 
-# research model
+# research_model = model.bind_tools([
+#     research_wikipedia,
+# ])
+
+
+# # the researcher doesnt have normal nodes like just llm most are tool nodes 
+# research_tool_node = ToolNode([
+#     research_wikipedia,
+# ])
+
+# research_model = model.bind_tools([
+#     search_wikipedia,
+#     search_web,
+#     get_wikipedia_article,
+# ])
+
 research_tool_node = ToolNode([
     search_wikipedia,
     search_web,
@@ -92,15 +98,25 @@ class AgentState:
 # Make the research request itself a tool/route that Gemini can choose.
 class ResearchState: 
     messages: Annotated[list[AnyMessage], add_messages]
-    searches_done: list[str]
 
 graph_builder = StateGraph(AgentState)
 research_builder = StateGraph(ResearchState)
 
-# node
+#node
 
-# main
+# def agent(state:AgentState):
+#     print("Agent node running!")
+#     return {} #"Don't modify the state."
+# def agent(state: AgentState):
+#     print("Agent node running!")
+#     print("Current state:", state)
+
+#     return {}
+
 def agent(state: AgentState):
+    # response = model.invoke(state["messages"])
+    # response = model_with_tools.invoke(state["messages"])
+
     messages = [
             SystemMessage(content="""
     You are the main agent.
@@ -120,6 +136,12 @@ def agent(state: AgentState):
 
     response = model_with_tools.invoke(messages)
 
+
+    # print("AGENT RESPONSE:")
+    # print(response)
+    # print("TOOL CALLS:")
+    # print(response.tool_calls)
+
     if response.tool_calls:
         for tool_call in response.tool_calls:
             print(f"Agent called tool: {tool_call['name']}")
@@ -131,8 +153,9 @@ def agent(state: AgentState):
         "messages": [response]
     }
 
-# research
 def researcher(state:ResearchState):
+    # response = research_model.invoke(state["messages"])
+
     user_query = state["messages"][0].content.lower()
 
     current_keywords = [
@@ -157,10 +180,8 @@ def researcher(state:ResearchState):
             search_web,
         ])
 
-    searches = state.get("searches_done", [])
-
     messages = [
-        SystemMessage(content=f"""
+      SystemMessage(content="""
         You are a research agent.
 
         Choose tools based on the question:
@@ -170,14 +191,11 @@ def researcher(state:ResearchState):
 
         Always research before answering.
 
-        Previous searches:
-        {searches}
+        Research iteratively only when it adds new evidence.
+        Do not repeat or rephrase a search that has already been performed.
+        After obtaining sufficient reliable evidence, stop researching and answer.
 
-        Do not repeat or rephrase a previous search unless it is genuinely necessary
-        to obtain new evidence.
-
-        Research only when it adds new evidence.
-        Stop when you have sufficient reliable evidence.
+        For important claims, prefer authoritative or primary sources.
 
         At the end, provide:
         1. A concise synthesized answer.
@@ -186,7 +204,7 @@ def researcher(state:ResearchState):
         
         *state["messages"]
     ]
-
+   
     response = research_model.invoke(messages)
 
     if response.tool_calls:
@@ -200,7 +218,6 @@ def researcher(state:ResearchState):
         "messages":[response]
     }
 
-# conditional rendering of tools
 def should_continue(state: AgentState):
     last_message = state["messages"][-1]
 
@@ -220,6 +237,7 @@ def research_should_continue(state: ResearchState):
 
 # adding node 
 graph_builder.add_node("agent",agent)
+# graph_builder.add_node("calculator", calculator) wrong
 graph_builder.add_node("tools",tool_node)
 
 # add edge
@@ -231,6 +249,7 @@ graph_builder.add_conditional_edges(
 )
 
 graph_builder.add_edge("tools", "agent")
+# graph_builder.add_edge("agent",END) handled by the conditional edges
 
 #complete the graph/ create it
 graph = graph_builder.compile()
@@ -249,7 +268,27 @@ research_builder.add_edge("research_tools", "researcher")
 
 research_graph = research_builder.compile()
 
-# --------------------------- RUN ---------------------------------
+#run
+# result = graph.invoke({
+#     "messages":[
+#         HumanMessage(content="What is 25 multiplied by 9?")
+#     ]
+# })
+
+# result = research_wikipedia.invoke({"topic": "LangGraph"})
+# print(result)
+
+# result = graph.invoke({
+#     "messages": [
+#         HumanMessage(content="What is LangGraph?")
+#     ]
+# })
+
+# result = research_graph.invoke({
+#     "messages": [
+#         HumanMessage(content="Research LangGraph on Wikipedia")
+#     ]
+# })
 
 question = input("What's on your mind?: ")
 
@@ -263,3 +302,68 @@ result = graph.invoke({
 })
 
 print(f"\n\nFINAL RESULT: \n{result["messages"][-1].text}")
+
+                #          USER
+                #            │
+                #            ▼
+                # "What is 25 + 9?"
+                #            │
+                #            ▼
+                #     ┌───────────┐
+                #     │   AGENT   │
+                #     │  Gemini   │
+                #     └─────┬─────┘
+                #           │
+                #     tool call?
+                #        YES
+                #           │
+                #           ▼
+                #     ┌───────────┐
+                #     │   TOOLS   │
+                #     │ calculator│
+                #     └─────┬─────┘
+                #           │
+                #         34.0
+                #           │
+                #           ▼
+                #     ┌───────────┐
+                #     │   AGENT   │
+                #     │  Gemini   │
+                #     └─────┬─────┘
+                #           │
+                #     tool call?
+                #          NO
+                #           │
+                #           ▼
+                #          END
+
+        #                  USER
+        #                    │
+        #                    ▼
+        #              GEMINI AGENT
+        #                    │
+        #      ┌─────────────┼─────────────┐
+        #      │             │             │
+        #      ▼             ▼             ▼
+        #   Answer       Calculator     Research
+        #                                 │
+        #                                 ▼
+        #                            RESEARCHER
+
+#                  RESEARCHER
+#                      │
+#           "What source should I use?"
+#                      │
+#        ┌─────────────┼─────────────┐
+#        ▼             ▼             ▼
+#    Wikipedia        Web          Files
+#        │             │             │
+#        └─────────────┼─────────────┘
+#                      ▼
+#                 Evidence
+#                      │
+#                      ▼
+#                 Researcher
+#                      │
+#                      ▼
+#               Synthesized answer

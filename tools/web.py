@@ -6,6 +6,8 @@ def search_web(topic: str) -> str:
     """Search the web for current or general information."""
     url = "https://www.google.com/search"
 
+    print(f"Searching web for: {topic}")
+
     response = requests.get(
         url,
         params={"q":topic},
@@ -13,4 +15,4 @@ def search_web(topic: str) -> str:
         timeout=10
     )
 
-    return response.text[:5000]
+    return f"Searched: {topic}\n\n{response}"
