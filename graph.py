@@ -204,21 +204,23 @@ def researcher(state:ResearchState):
 # state update node
 
 def update_searches(state: ResearchState):
-    last_message = state["messages"][-2] #gets the tool message not ai
-
     searches = state.get("searches_done", []).copy()
 
-    for tool_call in last_message.tool_calls:
-        if tool_call["name"] == "search_web":
-            topic = tool_call["args"]["topic"].lower()
+    # Find the latest AI message containing tool calls
+    for message in reversed(state["messages"]):
+        if hasattr(message, "tool_calls") and message.tool_calls:
+            for tool_call in message.tool_calls:
+                if tool_call["name"] == "search_web":
+                    topic = tool_call["args"]["topic"].lower()
 
-            if topic not in searches:
-                searches.append(topic)
+                    if topic not in searches:
+                        searches.append(topic)
+            break
 
     return {
         "searches_done": searches
     }
-    
+
 # conditional rendering of tools
 def should_continue(state: AgentState):
     last_message = state["messages"][-1]
