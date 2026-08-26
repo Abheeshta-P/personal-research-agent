@@ -207,6 +207,7 @@ def agent(state: AgentState):
 def researcher(state:ResearchState):
     source = state["source"]
     searches = state.get("searches_done", [])
+    sources_used = state.get("sources_used", [])
 
     research_tools = get_research_tools(source)
     research_model = model.bind_tools(research_tools)
@@ -225,6 +226,9 @@ def researcher(state:ResearchState):
 
             Previous searches:
             {searches}
+
+            Sources already used:
+            {sources_used}
 
             Rules:
             - Do not repeat a previous search.
@@ -285,14 +289,8 @@ def update_searches(state: ResearchState):
     for message in reversed(state["messages"]):
 
         if message.type == "tool":
-
-            if message.name == "search_files":
-                sources.append("Local files")
-
-            elif message.name == "search_arxiv":
-                sources.append("arXiv")
-
-            break
+            sources.append(message.name)
+        break
 
     return {
         "searches_done": searches,
@@ -362,7 +360,6 @@ result = graph.invoke({
     "messages": [
         HumanMessage(content=question)
     ],
-    "searches_done": []
 })
 
 print(f"\n\nFINAL RESULT: \n{result["messages"][-1].text}")
