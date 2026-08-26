@@ -50,15 +50,72 @@ model = ChatGoogleGenerativeAI(
     thinking_level="minimal",
 )
 
+RESEARCH_SOURCES = {
+    "1": "Wikipedia",
+    "2": "Web",
+    # "3": "Research Papers",
+    # "4": "Files",
+    "3": "All",
+}
+
+SOURCE_TOOLS = {
+    "Wikipedia": [
+        search_wikipedia,
+        get_wikipedia_article,
+    ],
+
+    "Web": [
+        search_web,
+    ],
+
+    # Future
+    # "Research Papers": [
+    #     search_arxiv,
+    #     search_ieee,
+    #     search_acm,
+    # ],
+
+    # "Files": [
+    #     search_files,
+    # ],
+}
+
+def choose_source():
+    print("\nChoose a research source:")
+
+    for key, source in RESEARCH_SOURCES.items():
+        print(f"{key}. {source}")
+
+    choice = input("Enter your choice: ")
+
+    return RESEARCH_SOURCES.get(choice, "All")
+
+def get_research_tools(source: str):
+    if source == "All":
+        tools = []
+
+        for source_tools in SOURCE_TOOLS.values():
+            # you get one flat list
+            tools.extend(source_tools)
+        
+        return tools
+
+    return SOURCE_TOOLS.get(source, [])
+
 @tool
 def research(topic: str) -> str:
-    """Research a topic using the research agent and Wikipedia."""
+    """Research a topic using a user-selected source."""
+    # select source when research tool call is done
+
+    source = choose_source()
 
     # call the llm with research tool as first step 
     result = research_graph.invoke({
         "messages": [
            HumanMessage(content=f"Research {topic}")
-        ]
+        ],
+        "searches_done":[],
+        "source": source,
     })
 
     return result["messages"][-1].text
@@ -78,12 +135,13 @@ tool_node = ToolNode([
     research,
 ])
 
-# research model
-research_tool_node = ToolNode([
-    search_wikipedia,
-    search_web,
-    get_wikipedia_article,
-])
+# # research model
+# research_tool_node = ToolNode([
+#     search_wikipedia,
+#     search_web,
+#     get_wikipedia_article,
+# ])
+
 
 # each node looks like this in that graph 
 class AgentState:
@@ -93,6 +151,12 @@ class AgentState:
 class ResearchState: 
     messages: Annotated[list[AnyMessage], add_messages]
     searches_done: list[str]
+    source: str
+
+def research_tools(state: ResearchState):
+    tools = get_research_tools(state["source"])
+    return ToolNode(tools).invoke(state)
+
 
 graph_builder = StateGraph(AgentState)
 research_builder = StateGraph(ResearchState)
@@ -135,55 +199,38 @@ def agent(state: AgentState):
 def researcher(state:ResearchState):
     user_query = state["messages"][0].content.lower()
 
-    current_keywords = [
-        "current",
-        "latest",
-        "today",
-        "recent",
-        "now",
-        "president",
-        "weather",
-        "price",
-    ]
-
-    needs_web = any(word in user_query for word in current_keywords)
-
-    if needs_web:
-        research_model = model.bind_tools([search_web]) #injects state automatically
-    else:
-        research_model = model.bind_tools([
-            search_wikipedia,
-            get_wikipedia_article,
-            search_web,
-        ])
-
+    source = state["source"]
     searches = state.get("searches_done", [])
 
+    research_tools = get_research_tools(source)
+    research_model = model.bind_tools(research_tools)
+
     messages = [
-       SystemMessage(content=f"""
-        You are a research agent.
+        SystemMessage(content=f"""
+            You are a research agent.
 
-        Choose tools based on the question:
-        - Wikipedia: general, stable facts and background.
-        - Web search: current, recent, changing, or time-sensitive information.
-        - Use both when useful.
+            The user selected this research source:
+            {source}
 
-        Always research before answering.
+            Only use the tools available to you for that source.
+            Do not use another source.
 
-        Previous searches:
-        {searches}
+            Always research before answering.
 
-        Rules:
-        - Do not repeat a previous search.
-        - Do not rephrase a previous search just to search the same information again.
-        - If a tool says the query was already searched, stop researching.
-        - Continue researching only when a genuinely new search can add evidence.
-        - Stop when you have sufficient reliable evidence.
+            Previous searches:
+            {searches}
 
-        At the end, provide:
-        1. A concise synthesized answer.
-        2. A Sources section containing only URLs actually used.
-        """),
+            Rules:
+            - Do not repeat a previous search.
+            - Do not rephrase a previous search just to search the same information again.
+            - If a tool says the query was already searched, use the existing evidence.
+            - Continue researching only when a genuinely new search can add evidence.
+            - Stop when you have sufficient reliable evidence.
+
+            At the end, provide:
+            1. A concise synthesized answer.
+            2. A Sources section containing only sources actually used with url.
+            """),
 
         *state["messages"]
     ]
@@ -200,6 +247,8 @@ def researcher(state:ResearchState):
     return {
         "messages":[response]
     }
+
+
 
 # state update node
 
@@ -259,7 +308,8 @@ graph = graph_builder.compile()
 # every graph starts with an llm call
 research_builder.add_node("researcher", researcher)
 research_builder.add_node("update_searches", update_searches)
-research_builder.add_node("research_tools", research_tool_node)
+# research_builder.add_node("research_tools", research_tool_node)
+research_builder.add_node("research_tools", research_tools)
 
 research_builder.add_edge(START, "researcher")
 research_builder.add_conditional_edges(
@@ -276,6 +326,8 @@ research_graph = research_builder.compile()
 # --------------------------- RUN ---------------------------------
 
 question = input("What's on your mind?: ")
+
+# select source when research tool call is done for research not here
 
 result = graph.invoke({
     "messages": [
