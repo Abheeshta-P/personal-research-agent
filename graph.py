@@ -40,6 +40,7 @@ from langgraph.prebuilt import ToolNode
 from tools.calculator import calculator
 from tools.wikipedia import search_wikipedia, get_wikipedia_article
 from tools.web import search_web
+from tools.arxiv import search_arxiv
 
 load_dotenv()
 
@@ -53,9 +54,9 @@ model = ChatGoogleGenerativeAI(
 RESEARCH_SOURCES = {
     "1": "Wikipedia",
     "2": "Web",
-    # "3": "Research Papers",
+    "3": "Research Papers",
     # "4": "Files",
-    "3": "All",
+    "4": "All",
 }
 
 SOURCE_TOOLS = {
@@ -68,12 +69,11 @@ SOURCE_TOOLS = {
         search_web,
     ],
 
-    # Future
-    # "Research Papers": [
-    #     search_arxiv,
-    #     search_ieee,
-    #     search_acm,
-    # ],
+    "Research Papers": [
+        search_arxiv,
+        # search_ieee,
+        # search_acm,
+    ],
 
     # "Files": [
     #     search_files,
@@ -88,6 +88,7 @@ def choose_source():
 
     choice = input("Enter your choice: ")
 
+    # if rubbish is put in the choice falls back to All 
     return RESEARCH_SOURCES.get(choice, "All")
 
 def get_research_tools(source: str):
@@ -201,8 +202,6 @@ def agent(state: AgentState):
 
 # research
 def researcher(state:ResearchState):
-    user_query = state["messages"][0].content.lower()
-
     source = state["source"]
     searches = state.get("searches_done", [])
 
@@ -246,7 +245,7 @@ def researcher(state:ResearchState):
             print(f"Researcher called tool: {tool_call['name']}")
             print(f"Arguments: {tool_call['args']}")
     else:
-        print(f"Researcher answer: ${response.text}")
+        print(f"Researcher answer: {response.text}")
     
     return {
         "messages":[response]
@@ -263,7 +262,7 @@ def update_searches(state: ResearchState):
     for message in reversed(state["messages"]):
         if hasattr(message, "tool_calls") and message.tool_calls:
             for tool_call in message.tool_calls:
-                if tool_call["name"] == "search_web":
+                if "topic" in tool_call["args"]:
                     topic = tool_call["args"]["topic"].lower()
 
                     if topic not in searches:

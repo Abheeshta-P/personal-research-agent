@@ -60,10 +60,3 @@ def search_arxiv(topic:str) -> str:
             return f"No arXiv papers found for: {topic}"
 
     return "\n\n".join(results)
-
-if __name__ == "__main__":
-    result = search_arxiv.invoke({
-        "topic": "transformer architecture"
-    })
-
-    print(result)
