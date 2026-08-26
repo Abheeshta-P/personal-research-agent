@@ -112,11 +112,12 @@ def research(topic: str) -> str:
     source = choose_source()
 
     # call the llm with research tool as first step 
-    result = research_graph.invoke({
+    result = research_graph.invoke({ 
         "messages": [
-           HumanMessage(content=f"Research {topic}")
-        ],
-        "searches_done":[],
+            HumanMessage(content=f"Research {topic}")
+        ], 
+        "searches_done": [],
+        "sources_used": [],
         "source": source,
     })
 
@@ -153,6 +154,7 @@ class AgentState:
 class ResearchState: 
     messages: Annotated[list[AnyMessage], add_messages]
     searches_done: list[str]
+    sources_used: list[str]
     source: str
 
 def research_tools(state: ResearchState):
@@ -231,9 +233,18 @@ def researcher(state:ResearchState):
             - Continue researching only when a genuinely new search can add evidence.
             - Stop when you have sufficient reliable evidence.
 
-            At the end, provide:
+           At the end, provide:
+
             1. A concise synthesized answer.
-            2. A Sources section containing only sources actually used with url.
+            2. A Sources section containing ONLY sources found in the tool results.
+
+            Never cite:
+            - sources from your own knowledge
+            - sources you did not retrieve
+            - papers/websites that were not returned by a tool
+
+            If the selected source is Files, cite the actual filename returned by search_files.
+            If the selected source is Research Papers, cite the actual URLs returned by search_arxiv.
             """),
 
         *state["messages"]
@@ -258,6 +269,7 @@ def researcher(state:ResearchState):
 
 def update_searches(state: ResearchState):
     searches = state.get("searches_done", []).copy()
+    sources = state.get("sources_used", []).copy()
 
     # Find the latest AI message containing tool calls
     for message in reversed(state["messages"]):
@@ -268,10 +280,23 @@ def update_searches(state: ResearchState):
 
                     if topic not in searches:
                         searches.append(topic)
+
+    # Look at tool results
+    for message in reversed(state["messages"]):
+
+        if message.type == "tool":
+
+            if message.name == "search_files":
+                sources.append("Local files")
+
+            elif message.name == "search_arxiv":
+                sources.append("arXiv")
+
             break
 
     return {
-        "searches_done": searches
+        "searches_done": searches,
+        "sources_used": sources,
     }
 
 # conditional rendering of tools
