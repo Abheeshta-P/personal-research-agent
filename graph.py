@@ -41,6 +41,7 @@ from tools.calculator import calculator
 from tools.wikipedia import search_wikipedia, get_wikipedia_article
 from tools.web import search_web
 from tools.arxiv import search_arxiv
+from tools.files import search_files
 
 load_dotenv()
 
@@ -55,8 +56,8 @@ RESEARCH_SOURCES = {
     "1": "Wikipedia",
     "2": "Web",
     "3": "Research Papers",
-    # "4": "Files",
-    "4": "All",
+    "4": "Files",
+    "5": "All",
 }
 
 SOURCE_TOOLS = {
@@ -75,9 +76,9 @@ SOURCE_TOOLS = {
         # search_acm,
     ],
 
-    # "Files": [
-    #     search_files,
-    # ],
+    "Files": [
+        search_files,
+    ],
 }
 
 def choose_source():
