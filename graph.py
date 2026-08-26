@@ -174,6 +174,10 @@ def agent(state: AgentState):
     - current or potentially changing information
     - detailed explanations where reliable source material is useful
     - research questions
+    - Call the research tool at most once for a user request.
+    - Pass the complete user question to the research tool.
+    - Do not split one research request into multiple research tool calls.
+    - The research agent will decide how to investigate the question.
 
     Use the calculator for mathematical calculations.
 
