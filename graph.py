@@ -186,6 +186,12 @@ def agent(state: AgentState):
     Use the calculator for mathematical calculations.
 
     If the question can be answered reliably without a tool, answer directly.
+
+    When using the result from the research tool:
+    - Preserve the Sources section from the research result.
+    - Include the retrieved sources in your final answer.
+    - Only use URLs explicitly provided by the research result.
+    - Do not invent, modify, or hallucinate URLs.
     """),
             *state["messages"]
     ]
@@ -236,6 +242,9 @@ def researcher(state:ResearchState):
             - If a tool says the query was already searched, use the existing evidence.
             - Continue researching only when a genuinely new search can add evidence.
             - Stop when you have sufficient reliable evidence.
+            - When writing the Sources section, use ONLY URLs, filenames, or source information explicitly present in the tool results stored in Sources already used.
+            - Do not invent sources.
+            - Do not add sources from your own knowledge.
 
            At the end, provide:
 
@@ -275,7 +284,7 @@ def update_searches(state: ResearchState):
     searches = state.get("searches_done", []).copy()
     sources = state.get("sources_used", []).copy()
 
-    # Find the latest AI message containing tool calls
+    # Track searches made by the researcher ai output
     for message in reversed(state["messages"]):
         if hasattr(message, "tool_calls") and message.tool_calls:
             for tool_call in message.tool_calls:
@@ -284,13 +293,13 @@ def update_searches(state: ResearchState):
 
                     if topic not in searches:
                         searches.append(topic)
+            break
 
-    # Look at tool results
+    # Store the actual tool result
     for message in reversed(state["messages"]):
-
         if message.type == "tool":
-            sources.append(message.name)
-        break
+            sources.append(message.content)
+            break
 
     return {
         "searches_done": searches,
