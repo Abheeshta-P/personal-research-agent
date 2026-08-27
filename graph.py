@@ -198,12 +198,12 @@ def agent(state: AgentState):
 
     response = model_with_tools.invoke(messages)
 
-    if response.tool_calls:
-        for tool_call in response.tool_calls:
-            print(f"Agent called tool: {tool_call['name']}")
-            print(f"Arguments: {tool_call['args']}")
-    else:
-        print(f"Final answer: {response.text}")
+    # if response.tool_calls:
+    #     for tool_call in response.tool_calls:
+    #         print(f"Agent called tool: {tool_call['name']}")
+    #         print(f"Arguments: {tool_call['args']}")
+    # else:
+    #     print(f"Final answer: {response.text}")
 
     return {
         "messages": [response]
@@ -246,18 +246,26 @@ def researcher(state:ResearchState):
             - Do not invent sources.
             - Do not add sources from your own knowledge.
 
-           At the end, provide:
+           At the end, ALWAYS provide:
 
             1. A concise synthesized answer.
-            2. A Sources section containing ONLY sources found in the tool results.
+            2. A Sources section.
 
-            Never cite:
-            - sources from your own knowledge
-            - sources you did not retrieve
-            - papers/websites that were not returned by a tool
-
-            If the selected source is Files, cite the actual filename returned by search_files.
-            If the selected source is Research Papers, cite the actual URLs returned by search_arxiv.
+            Citation rules:
+            - ALWAYS include a Sources section.
+            - If you used a research tool, the Sources section MUST NOT be empty.
+            - Use ONLY sources explicitly returned by the research tools.
+            - For Research Papers, include the actual paper title and URL returned by search_arxiv.
+            - For Web, include the URLs returned by search_web.
+            - For Wikipedia, include the Wikipedia URL returned by the Wikipedia tools.
+            - For Files, include the actual filenames returned by search_files.
+            - Do NOT say that a source is unnecessary because the information is common knowledge, foundational knowledge, or well established.
+            - Do NOT omit sources because the topic is well known.
+            - NEVER invent a source.
+            - NEVER create or modify a URL.
+            - If a research tool returned evidence but you cannot determine the source information, explicitly say:
+            "Sources could not be extracted from the tool result."
+            Do not fabricate one.
             """),
 
         *state["messages"]
@@ -265,12 +273,12 @@ def researcher(state:ResearchState):
 
     response = research_model.invoke(messages)
 
-    if response.tool_calls:
-        for tool_call in response.tool_calls:
-            print(f"Researcher called tool: {tool_call['name']}")
-            print(f"Arguments: {tool_call['args']}")
-    else:
-        print(f"Researcher answer: {response.text}")
+    # if response.tool_calls:
+    #     for tool_call in response.tool_calls:
+    #         print(f"Researcher called tool: {tool_call['name']}")
+    #         print(f"Arguments: {tool_call['args']}")
+    # else:
+    #     print(f"Researcher answer: {response.text}")
     
     return {
         "messages":[response]
@@ -371,4 +379,11 @@ result = graph.invoke({
     ],
 })
 
-print(f"\n\nFINAL RESULT: \n{result["messages"][-1].text}")
+# print(f"\n\nFINAL RESULT: \n{result["messages"][-1].text}")
+answer = result["messages"][-1].text
+
+print("\n" + "─" * 50)
+print("ANSWER")
+print("─" * 50)
+print(answer)
+print("─" * 50)
