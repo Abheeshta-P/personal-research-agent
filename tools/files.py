@@ -66,20 +66,13 @@ def search_files(topic:str) -> str:
 
         if topic.lower() in filename or topic.lower() in text.lower():
             results.append(
-                f"File: {file_path.name}\n"
-                f"Content:\n{text}"
+                f"SOURCE:\n"
+                f"Title: {file_path.name}\n"
+                f"URL: local://{file_path.name}\n\n"
+                f"CONTENT:\n{text}"
             )
 
     if not results:
         return f"No relevant files found for: {topic}"
 
     return "\n\n".join(results)
-
-
-if __name__ == "__main__":
-    result = search_files.invoke({
-        "topic": "self-attention"
-    })
-
-    print(result)
-        

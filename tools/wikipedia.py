@@ -27,9 +27,15 @@ def search_wikipedia(topic: str) -> str:
     if not results:
         return f"No Wikipedia results found for: {topic}"
 
-    return "\n".join(
-        f"{i + 1}. {result['title']}"
-        for i, result in enumerate(results)
+    # (expression for item in collection) 
+    # [...] → list comprehension → creates a list immediately
+    # (...) → generator expression → produces values as needed
+
+    return "\n\n".join(
+        f"SOURCE:\n"
+        f"Title: {result['title']}\n"
+        f"URL: https://en.wikipedia.org/wiki/{result['title'].replace(' ', '_')}"
+        for result in results
     )
 
 
@@ -62,4 +68,9 @@ def get_wikipedia_article(title: str) -> str:
     if not extract:
         return f"No article content found for: {title}"
 
-    return extract
+    return (
+        f"SOURCE:\n"
+        f"Title: {title}\n"
+        f"URL: https://en.wikipedia.org/wiki/{title.replace(' ', '_')}\n\n"
+        f"CONTENT:\n{extract}"
+    )

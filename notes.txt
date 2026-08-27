@@ -61,3 +61,44 @@ GEMINI AGENT
                             USER
 
 UPCOMING : source selection
+V1 RESEARCH AGENT
+
+[x] Main agent
+[x] Calculator
+[x] Research as a tool
+[x] Research subgraph
+[x] Source selection
+[x] Wikipedia
+[x] Web
+[x] arXiv
+[x] Local files
+[x] TXT
+[x] MD
+[x] PDF
+[x] DOCX
+[x] Search tracking
+[x] Source tracking
+
+NEXT
+
+[ ] Proper citation/evidence flow       ← do this first
+[ ] Main agent grounded in citations
+[ ] Prevent hallucinated sources
+[ ] IEEE
+[ ] ACM
+
+LATER — RAG
+
+[ ] Chunking
+[ ] Embeddings
+[ ] Vector store
+[ ] Semantic retrieval
+[ ] Better file search
+
+
+| Source    | Researcher finds evidence | Sources section |
+| --------- | ------------------------- | --------------- |
+| Files     | Yes                       | filenames       |
+| Wikipedia | Yes                       | Wikipedia URLs  |
+| arXiv     | Yes                       | arXiv URL       |
+| Web       | Yes                       | currently weak  |

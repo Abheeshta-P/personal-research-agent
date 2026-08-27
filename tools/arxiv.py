@@ -19,13 +19,20 @@ def search_arxiv(topic:str) -> str:
          "User-Agent": "ai-research-agent/0.1"
     }
 
-    response = requests.get(
-        url,
-        params=params,
-        headers=headers,
-        timeout=30
-    )
-    response.raise_for_status()
+    try:
+        response = requests.get(
+            url,
+            params=params,
+            headers=headers,
+            timeout=30,
+        )
+        response.raise_for_status()
+
+    except requests.exceptions.Timeout:
+        return f"arXiv search timed out for: {topic}"
+
+    except requests.exceptions.RequestException as e:
+        return f"arXiv search failed: {e}"
 
     root = ET.fromstring(response.text)
 
@@ -50,13 +57,14 @@ def search_arxiv(topic:str) -> str:
         link = entry.find("atom:id", namespace)
 
         results.append(
-            f"{i}. {title.text.strip()}\n"
+            f"SOURCE:\n"
+            f"Title: {title.text.strip()}\n"
+            f"URL: {link.text.strip()}\n"
             f"Authors: {', '.join(author.text.strip() for author in authors)}\n"
-            f"Published: {published.text[:10]}\n"
-            f"URL: {link.text.strip()}"
+            f"Published: {published.text[:10]}"
         )
 
-        if not results:
-            return f"No arXiv papers found for: {topic}"
+    if not results:
+        return f"No arXiv papers found for: {topic}"
 
     return "\n\n".join(results)
