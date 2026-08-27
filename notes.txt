@@ -45,7 +45,7 @@ GEMINI AGENT
                          │
                          ├── Wikipedia
                          ├── Web
-                         ├── Docs
+                         ├── Research Papers
                          └── Files
                               │
                               ▼
