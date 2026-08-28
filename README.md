@@ -2,93 +2,59 @@
 
 A research agent built with Python, Gemini, LangChain, and LangGraph.
 
-The goal of this project is to understand how AI agents work by building one step by step — starting with tool calling and gradually adding research sources, state, and citations.
+The goal of this project is to understand how AI agents work by building one step by step — starting with tool calling and gradually adding multiple research sources, state management, source tracking, citations, and research workflows.
 
 ## Architecture
 
-```text
+```mermaid
 flowchart TD
+
     U[USER] --> A[GEMINI AGENT]
 
     A -->|Simple question| ANS[Answer]
-
     A -->|Calculation| C[Calculator]
-    C --> ANS
+    C --> A
 
     A -->|Research| R[Researcher]
 
-    R --> W[Wikipedia]
-    R --> WEB[Web]
-    R --> P[Research Papers]
-    R --> F[Files]
+    R -->|Wikipedia| W[Wikipedia]
+    R -->|Web| WEB[Tavily Web Search]
+    R -->|Research Papers| P[arXiv]
+    R -->|Files| F[Files]
 
-    W --> G[Gather information]
-    WEB --> G
-    P --> G
-    F --> G
+    W --> E[Evidence]
+    WEB --> E
+    P --> E
+    F --> E
 
-    G --> S[Save research]
-    S --> R
+    E --> R
+    R -->|Synthesized answer + Sources| A
 
-    R --> A
     A --> ANS
     ANS --> U
+
+    ANS --> SAVE[Save Research]
+    SAVE --> MD[Markdown .md]
+    SAVE --> TXT[Plain Text .txt]
 ```
 
 ## What It Can Do
 
-### Main Agent
+The system consists of two agents:
 
-The Gemini agent can:
+- **Main Agent** — handles user requests, answers directly when possible, performs calculations, and delegates research tasks
+- **Research Agent** — investigates topics using the selected research sources and produces a synthesized answer
 
-* Answer normal questions
-* Perform calculations using the calculator tool
-* Send research questions to the research agent
+The system supports:
 
-### Research Agent
-
-The research agent allows the user to choose where to research:
-
-```text
-1. Wikipedia
-2. Web
-3. Research Papers
-4. Files
-5. All
-```
-
-It then dynamically provides the researcher with the tools for the selected source.
-
-### Research Sources
-
-* **Wikipedia** — Search and retrieve Wikipedia articles
-* **Web** — Search the web using Tavily
-* **Research Papers** — Search arXiv
-* **Files** — Search TXT, MD, PDF and DOCX files
-
-## Research Flow
-
-```text
-User question
-     ↓
-Gemini Agent
-     ↓
-Research
-     ↓
-User selects source
-     ↓
-Researcher
-     ↓
-Search / retrieve information
-     ↓
-Save research state
-     ↓
-Researcher
-     ↓
-Synthesized answer
-```
-
-The researcher keeps track of previous searches and sources so it can avoid unnecessary repeated searches.
+- Direct question answering
+- Mathematical calculations
+- Wikipedia research
+- Tavily web research
+- arXiv research papers
+- Local file research (TXT, MD, PDF, DOCX)
+- User-controlled source selection
+- Markdown and plain-text research export
 
 ## Tech Stack
 
@@ -114,7 +80,10 @@ personal-research-agent/
 │   ├── wikipedia.py
 │   ├── web.py
 │   ├── arxiv.py
-│   └── files.py
+│   ├── files.py
+│   └── save_research.py
+│
+├── research/
 │
 ├── .env
 ├── .gitignore
@@ -140,28 +109,40 @@ Never commit `.env` or expose API keys.
 uv run graph.py
 ```
 
-## Current Features
-
-* Gemini main agent
-* Calculator tool
-* LangGraph workflows
-* Wikipedia research
-* Tavily web research
-* arXiv research
-* File research
-* User-selected research sources
-* Dynamic tool selection
-* Research state tracking
-* Source tracking
-* Standardized research source format
-* Citations
-
 ## Roadmap
 
-* IEEE research
-* ACM research
-* Better source ranking
-* Improved citations
-* Better research planning
-* More reliable evidence synthesis
+The next stages are ordered based on what will be built next, with each stage building on the previous one.
 
+1. **File-based RAG**
+   - Add semantic retrieval for local documents using chunking, embeddings, and vector search.
+   - Improve the existing file research capability beyond keyword-based retrieval.
+
+2. **File Upload**
+   - Allow users to upload documents directly to the research agent.
+   - Connect uploaded documents to the file-based RAG pipeline.
+
+3. **Advanced Research Planning**
+   - Allow the researcher to break complex questions into multiple research steps.
+   - Plan what information needs to be gathered before starting the investigation.
+
+4. **Advanced Evidence & Citations**
+   - Ground claims in retrieved evidence.
+   - Evaluate source reliability and evidence quality.
+   - Detect conflicting information between sources.
+   - Improve citation accuracy and make it clear which sources support each claim.
+
+5. **Parallel Research**
+   - Research multiple independent sub-questions or sources concurrently.
+   - Combine the retrieved evidence before synthesis.
+
+6. **Conversation-Aware Research**
+   - Use previous conversation and research context for follow-up questions.
+   - Avoid repeating research when existing evidence is still relevant.
+
+7. **Structured Research Reports**
+   - Generate structured reports containing summaries, findings, evidence, and sources.
+
+8. **Research History**
+   - Store previous research sessions and allow them to be retrieved later.
+
+> Under development. All rights reserved to [Abheeshta-P](https://github.com/Abheeshta-P).
