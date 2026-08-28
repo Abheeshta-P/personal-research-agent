@@ -78,6 +78,22 @@ def markdown_to_text(content: str) -> str:
 
     return text.strip()
 
+def get_unique_path(file_path: Path) -> Path:
+    """Return a unique path without overwriting an existing file."""
+
+    counter = 1
+
+    while True:
+        # Keep the same folder/path, but change the filename. 
+        new_path = file_path.with_name(
+            f"{file_path.stem}_{counter}{file_path.suffix}"
+        )
+
+        if not new_path.exists():
+            return new_path
+
+        counter += 1
+
 
 def save_research(
         topic: str,
@@ -100,6 +116,34 @@ def save_research(
 
     file_path = research_dir/filename
 
-    file_path.write_text(content, encoding="utf-8")
+     # Existing file
+    if file_path.exists():
+
+        print(f"\nA file already exists:")
+        print(f"{file_path}")
+
+        print("\nWhat would you like to do?")
+        print("1. Overwrite this file")
+        print("2. Save as a new file")
+        print("3. Cancel")
+
+        choice = input("Enter your choice: ").strip()
+
+        if choice == "1":
+            pass
+
+        elif choice == "2":
+            file_path = get_unique_path(file_path)
+
+        elif choice == "3":
+            return "Research not saved."
+
+        else:
+            return "Invalid choice. Research not saved."
+
+    file_path.write_text(
+        content,
+        encoding="utf-8",
+    )
 
     return f"Research saved to: {file_path}"
