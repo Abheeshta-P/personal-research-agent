@@ -1,27 +1,3 @@
-# Think of LangGraph as a way to draw our program as a flowchart that can actually run.
-# State is the information our graph carries around while it works.
-# For our agent, the most important state will initially be: message
-
-
-#                  RESEARCHER
-#                      │
-#           "What source should I use?"
-#                      │
-#        ┌─────────────┼─────────────┐
-#        ▼             ▼             ▼
-#    Wikipedia        Web          Files
-#        │             │             │
-#        └─────────────┼─────────────┘
-#                      ▼
-#                 Evidence
-#                      │
-#                      ▼
-#                 Researcher
-#                      │
-#                      ▼
-#               Synthesized answer
-
-
 from langgraph.graph import StateGraph, START, END
 
 from typing import Annotated, TypedDict
@@ -138,13 +114,6 @@ tool_node = ToolNode([
     research,
 ])
 
-# # research model
-# research_tool_node = ToolNode([
-#     search_wikipedia,
-#     search_web,
-#     get_wikipedia_article,
-# ])
-
 
 # each node looks like this in that graph 
 class AgentState:
@@ -197,13 +166,6 @@ def agent(state: AgentState):
     ]
 
     response = model_with_tools.invoke(messages)
-
-    # if response.tool_calls:
-    #     for tool_call in response.tool_calls:
-    #         print(f"Agent called tool: {tool_call['name']}")
-    #         print(f"Arguments: {tool_call['args']}")
-    # else:
-    #     print(f"Final answer: {response.text}")
 
     return {
         "messages": [response]
@@ -273,13 +235,6 @@ def researcher(state:ResearchState):
 
     response = research_model.invoke(messages)
 
-    # if response.tool_calls:
-    #     for tool_call in response.tool_calls:
-    #         print(f"Researcher called tool: {tool_call['name']}")
-    #         print(f"Arguments: {tool_call['args']}")
-    # else:
-    #     print(f"Researcher answer: {response.text}")
-    
     return {
         "messages":[response]
     }
