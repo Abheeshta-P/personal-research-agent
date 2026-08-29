@@ -105,7 +105,7 @@ def save_research(
     if extension not in {"md", "txt"}:
         return "Unsupported file format."
 
-    research_dir = Path("research")
+    research_dir = Path("research-output")
 
     research_dir.mkdir(exist_ok=True)
 

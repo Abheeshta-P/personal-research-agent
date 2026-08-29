@@ -1,84 +1,27 @@
 from langgraph.graph import StateGraph, START, END
 
-from typing import Annotated, TypedDict
-# We're going to use it to tell LangGraph how the messages state should be updated.
-from langchain_core.messages import AnyMessage, HumanMessage, SystemMessage
-from langgraph.graph.message import add_messages
-# reducer: what to do when state gets updated? replace or add
 
-from langchain_google_genai import ChatGoogleGenerativeAI
-from dotenv import load_dotenv
+from langchain_core.messages import HumanMessage, SystemMessage
+
 from langchain_core.tools import tool
 
 from langgraph.prebuilt import ToolNode
 
+# model
+from agents.model import model
+
+# states
+from research.state import AgentState, ResearchState
+
+# source
+from research.sources import choose_source, get_research_tools
+
 # tool
 from tools.calculator import calculator
-from tools.wikipedia import search_wikipedia, get_wikipedia_article
-from tools.web import search_web
-from tools.arxiv import search_arxiv
-from tools.files import search_files
 
-load_dotenv()
+# research agent 
+from agents.researcher import researcher, update_searches
 
-model = ChatGoogleGenerativeAI(
-    # model="gemini-3.6-flash"
-    # model="gemini-3.5-flash-lite",
-    model="gemini-3.1-flash-lite",
-    thinking_level="minimal",
-)
-
-RESEARCH_SOURCES = {
-    "1": "Wikipedia",
-    "2": "Web",
-    "3": "Research Papers",
-    "4": "Files",
-    "5": "All",
-}
-
-SOURCE_TOOLS = {
-    "Wikipedia": [
-        search_wikipedia,
-        get_wikipedia_article,
-    ],
-
-    "Web": [
-        search_web,
-    ],
-
-    "Research Papers": [
-        search_arxiv,
-        # search_ieee,
-        # search_acm,
-    ],
-
-    "Files": [
-        search_files,
-    ],
-}
-
-def choose_source():
-    print("\nChoose a research source:")
-
-    for key, source in RESEARCH_SOURCES.items():
-        print(f"{key}. {source}")
-
-    choice = input("Enter your choice: ")
-
-    # if rubbish is put in the choice falls back to All 
-    return RESEARCH_SOURCES.get(choice, "All")
-
-def get_research_tools(source: str):
-    if source == "All":
-        tools = []
-
-        for source_tools in SOURCE_TOOLS.values():
-            # you get one flat list
-            tools.extend(source_tools)
-        
-        return tools
-
-    return SOURCE_TOOLS.get(source, [])
 
 @tool
 def research(topic: str) -> str:
@@ -114,17 +57,6 @@ tool_node = ToolNode([
     research,
 ])
 
-
-# each node looks like this in that graph 
-class AgentState:
-    messages: Annotated[list[AnyMessage],add_messages]
-
-# Make the research request itself a tool/route that Gemini can choose.
-class ResearchState: 
-    messages: Annotated[list[AnyMessage], add_messages]
-    searches_done: list[str]
-    sources_used: list[str]
-    source: str
 
 def research_tools(state: ResearchState):
     tools = get_research_tools(state["source"])
@@ -171,103 +103,6 @@ def agent(state: AgentState):
         "messages": [response]
     }
 
-# research
-def researcher(state:ResearchState):
-    source = state["source"]
-    searches = state.get("searches_done", [])
-    sources_used = state.get("sources_used", [])
-
-    research_tools = get_research_tools(source)
-    research_model = model.bind_tools(research_tools)
-
-    messages = [
-        SystemMessage(content=f"""
-            You are a research agent.
-
-            The user selected this research source:
-            {source}
-
-            Only use the tools available to you for that source.
-            Do not use another source.
-
-            Always research before answering.
-
-            Previous searches:
-            {searches}
-
-            Sources already used:
-            {sources_used}
-
-            Rules:
-            - Do not repeat a previous search.
-            - Do not rephrase a previous search just to search the same information again.
-            - If a tool says the query was already searched, use the existing evidence.
-            - Continue researching only when a genuinely new search can add evidence.
-            - Stop when you have sufficient reliable evidence.
-            - When writing the Sources section, use ONLY URLs, filenames, or source information explicitly present in the tool results stored in Sources already used.
-            - Do not invent sources.
-            - Do not add sources from your own knowledge.
-
-           At the end, ALWAYS provide:
-
-            1. A concise synthesized answer.
-            2. A Sources section.
-
-            Citation rules:
-            - ALWAYS include a Sources section.
-            - If you used a research tool, the Sources section MUST NOT be empty.
-            - Use ONLY sources explicitly returned by the research tools.
-            - For Research Papers, include the actual paper title and URL returned by search_arxiv.
-            - For Web, include the URLs returned by search_web.
-            - For Wikipedia, include the Wikipedia URL returned by the Wikipedia tools.
-            - For Files, include the actual filenames returned by search_files.
-            - Do NOT say that a source is unnecessary because the information is common knowledge, foundational knowledge, or well established.
-            - Do NOT omit sources because the topic is well known.
-            - NEVER invent a source.
-            - NEVER create or modify a URL.
-            - If a research tool returned evidence but you cannot determine the source information, explicitly say:
-            "Sources could not be extracted from the tool result."
-            Do not fabricate one.
-            """),
-
-        *state["messages"]
-    ]
-
-    response = research_model.invoke(messages)
-
-    return {
-        "messages":[response]
-    }
-
-
-
-# state update node
-
-def update_searches(state: ResearchState):
-    searches = state.get("searches_done", []).copy()
-    sources = state.get("sources_used", []).copy()
-
-    # Track searches made by the researcher ai output
-    for message in reversed(state["messages"]):
-        if hasattr(message, "tool_calls") and message.tool_calls:
-            for tool_call in message.tool_calls:
-                if "topic" in tool_call["args"]:
-                    topic = tool_call["args"]["topic"].lower()
-
-                    if topic not in searches:
-                        searches.append(topic)
-            break
-
-    # Store the actual tool result
-    for message in reversed(state["messages"]):
-        if message.type == "tool":
-            sources.append(message.content)
-            break
-
-    return {
-        "searches_done": searches,
-        "sources_used": sources,
-    }
 
 # conditional rendering of tools
 def should_continue(state: AgentState):
