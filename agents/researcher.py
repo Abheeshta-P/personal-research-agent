@@ -1,10 +1,10 @@
 from langchain_core.messages import SystemMessage
 
 from agents.model import model
-from research.sources import get_research_tools
-from research.state import ResearchState
+from core.config import get_research_tools
+from core.state import ResearchState
 
-# research
+# research agent
 def researcher(state:ResearchState):
     source = state["source"]
     searches = state.get("searches_done", [])
@@ -72,7 +72,7 @@ def researcher(state:ResearchState):
         "messages":[response]
     }
 
-# state update node
+# between the tool calls track the search and search source
 def update_searches(state: ResearchState):
     searches = state.get("searches_done", []).copy()
     sources = state.get("sources_used", []).copy()

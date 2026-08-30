@@ -32,6 +32,7 @@ SOURCE_TOOLS = {
     ],
 }
 
+# util to choose a source
 def choose_source():
     print("\nChoose a research source:")
 
@@ -43,6 +44,7 @@ def choose_source():
     # if rubbish is put in the choice falls back to All 
     return RESEARCH_SOURCES.get(choice, "All")
 
+# util to get the tool assosiated with the source
 def get_research_tools(source: str):
     if source == "All":
         tools = []
