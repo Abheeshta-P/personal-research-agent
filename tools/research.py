@@ -1,7 +1,7 @@
 from langchain_core.tools import tool
 
 # source
-from core.config import choose_source
+from config import choose_source
 
 from langchain_core.messages import HumanMessage
 from graphs.research_graph import research_graph

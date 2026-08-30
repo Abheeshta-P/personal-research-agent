@@ -1,8 +1,8 @@
 from langchain_core.messages import SystemMessage
 
 from agents.model import model
-from core.config import get_research_tools
-from core.state import ResearchState
+from config import get_research_tools
+from states.state import ResearchState
 
 # research agent
 def researcher(state:ResearchState):

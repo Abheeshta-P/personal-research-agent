@@ -1,5 +1,5 @@
 from langgraph.graph import StateGraph, START, END
-from core.state import AgentState
+from states.state import AgentState
 from agents.main_agent import agent, tool_node
 
 # conditional rendering of tools in main graph

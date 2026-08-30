@@ -1,5 +1,5 @@
 from langgraph.prebuilt import ToolNode
-from core.state import ResearchState
+from states.state import ResearchState
 from langgraph.graph import StateGraph, START, END
 from agents.researcher import researcher, update_searches, get_research_tools
 
