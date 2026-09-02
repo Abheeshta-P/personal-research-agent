@@ -46,6 +46,8 @@ def read_file(file_path: Path) -> str:
 def search_files(topic: str) -> str:
     """Search local documents for information related to a topic."""
 
+    print(f"Searching local documents for: '{topic}'...")
+
     # Ensure document folder exists before searching
     if not DOCUMENTS_DIR.exists():
         return f"NO_RESULTS: Documents directory '{DOCUMENTS_DIR}' does not exist."

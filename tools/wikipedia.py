@@ -5,6 +5,8 @@ from langchain_core.tools import tool
 def search_wikipedia(topic: str) -> str:
     """Search Wikipedia for relevant articles."""
 
+    print(f"Searching Wikipedia for: '{topic}'...")
+
     url = "https://en.wikipedia.org/w/api.php"
 
     params = {
@@ -46,6 +48,8 @@ def search_wikipedia(topic: str) -> str:
 @tool
 def get_wikipedia_article(title: str) -> str:
     """Get the full Wikipedia article for a title."""
+
+    print(f"Fetching Wikipedia article: '{title}'...")
 
     url = "https://en.wikipedia.org/w/api.php"
 

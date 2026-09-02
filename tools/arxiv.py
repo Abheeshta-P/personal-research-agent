@@ -9,6 +9,8 @@ from langchain_core.tools import tool
 def search_arxiv(topic: str) -> str:
     """Search arXiv for research papers on a topic."""
 
+    print(f"Searching arXiv for: '{topic}'...")
+
     import re
 
     # Extract meaningful keywords of 3+ letters to verify query relevance

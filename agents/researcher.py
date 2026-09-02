@@ -14,6 +14,10 @@ def researcher(state: ResearchState):
     research_tools = get_research_tools(source)
     research_model = model.bind_tools(research_tools)
 
+    # Inform user when synthesizing retrieved evidence
+    if state.get("evidence_found", False):
+        print("Synthesizing research findings...")
+
     messages = [
         SystemMessage(content=f"""
         You are a research agent.

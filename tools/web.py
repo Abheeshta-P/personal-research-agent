@@ -17,7 +17,7 @@ def search_web(topic: str, state: Annotated[dict, InjectedState]) -> str:
     if topic.lower() in searches_done:
         return f"Already searched this query: {topic}. Use the existing evidence."
 
-    print(f"Searching web for: {topic}")
+    print(f"Searching the web for: '{topic}'...")
 
     try:
         client = TavilyClient(api_key=os.getenv("TAVILY_API_KEY"))
