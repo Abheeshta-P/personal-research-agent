@@ -5,8 +5,18 @@ from agents.researcher import researcher, update_searches, get_research_tools
 
 # util to select dynamic tools based on source and attach it to graph
 def research_tools(state: ResearchState):
+    print("\n[DEBUG] research_tools() ENTERED")
+    print("source:", state["source"])
+    print("messages:", state["messages"])
+
     tools = get_research_tools(state["source"])
-    return ToolNode(tools).invoke(state)
+
+    result = ToolNode(tools).invoke(state)
+
+    print("[DEBUG] research_tools() RESULT:")
+    print(result)
+
+    return result
 
 # conditional rendering of tools in research graph
 def research_should_continue(state: ResearchState):
@@ -15,7 +25,12 @@ def research_should_continue(state: ResearchState):
     # it will choose the tool out of the list 
     if last_message.tool_calls:
         return "research_tools"
-    
+
+    return END
+
+def after_update(state: ResearchState):
+    if state.get("evidence_found", False):
+        return "researcher"
     return END
 
 research_builder = StateGraph(ResearchState)
@@ -33,7 +48,11 @@ research_builder.add_conditional_edges(
 )
 # tool call should return result to agent 
 research_builder.add_edge("research_tools", "update_searches")
+
 # between tool call and researcher
-research_builder.add_edge("update_searches", "researcher")
+research_builder.add_conditional_edges(
+    "update_searches",
+    after_update
+)
 
 research_graph = research_builder.compile()

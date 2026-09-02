@@ -5,7 +5,7 @@ from config import get_research_tools
 from states.state import ResearchState
 
 # research agent
-def researcher(state:ResearchState):
+def researcher(state: ResearchState):
     source = state["source"]
     searches = state.get("searches_done", [])
     sources_used = state.get("sources_used", [])
@@ -15,23 +15,29 @@ def researcher(state:ResearchState):
 
     messages = [
         SystemMessage(content=f"""
-            You are a research agent.
+        You are a research agent.
 
-            The user selected this research source:
-            {source}
+        The user selected this research source:
+        {source}
 
-            Only use the tools available to you for that source.
-            Do not use another source.
+        Only use the tools available to you for that source.
 
-            Always research before answering.
+        IMPORTANT:
+        - You MUST base your answer only on evidence returned by the selected source.
+        - If the selected source cannot find relevant information, DO NOT answer from your own knowledge.
+        - Instead return exactly:
+          "Could not find relevant information in the selected source: {source}"
+        - Never invent or fill gaps using your own knowledge.
+        - Never use another source.
+        - Always research before answering.
 
-            Previous searches:
-            {searches}
+        Previous searches:
+        {searches}
 
-            Sources already used:
-            {sources_used}
+        Sources already used:
+        {sources_used}
 
-            Rules:
+        Rules:
             - Do not repeat a previous search.
             - Do not rephrase a previous search just to search the same information again.
             - If a tool says the query was already searched, use the existing evidence.
@@ -41,41 +47,44 @@ def researcher(state:ResearchState):
             - Do not invent sources.
             - Do not add sources from your own knowledge.
 
-           At the end, ALWAYS provide:
-
-            1. A concise synthesized answer.
-            2. A Sources section.
-
-            Citation rules:
-            - ALWAYS include a Sources section.
-            - If you used a research tool, the Sources section MUST NOT be empty.
-            - Use ONLY sources explicitly returned by the research tools.
-            - For Research Papers, include the actual paper title and URL returned by search_arxiv.
-            - For Web, include the URLs returned by search_web.
-            - For Wikipedia, include the Wikipedia URL returned by the Wikipedia tools.
-            - For Files, include the actual filenames returned by search_files.
-            - Do NOT say that a source is unnecessary because the information is common knowledge, foundational knowledge, or well established.
-            - Do NOT omit sources because the topic is well known.
-            - NEVER invent a source.
-            - NEVER create or modify a URL.
-            - If a research tool returned evidence but you cannot determine the source information, explicitly say:
-            "Sources could not be extracted from the tool result."
-            Do not fabricate one.
-            """),
-
+        At the end, ALWAYS provide:
+            1. A concise synthesized answer based ONLY on retrieved evidence.
+            2. A Sources section containing ONLY sources found in the tool results.
+        """),
         *state["messages"]
     ]
 
+    print("\n[DEBUG] researcher()")
+    print("source:", source)
+    print("messages:", state["messages"])
+    print("tools:", [tool.name for tool in research_tools])
     response = research_model.invoke(messages)
+    print("[DEBUG] researcher response:")
+    print("content:", response.content)
+    print("tool_calls:", response.tool_calls)
 
     return {
-        "messages":[response]
+        "messages": [response]
     }
 
 # between the tool calls track the search and search source
 def update_searches(state: ResearchState):
+
+    print("\n[DEBUG] update_searches() ENTERED")
+    print("messages:", state["messages"])
     searches = state.get("searches_done", []).copy()
     sources = state.get("sources_used", []).copy()
+
+    evidence_found = state.get("evidence_found", False)
+
+    # Evidence Reset in Multi-Step Research
+    for message in reversed(state["messages"]):
+        if message.type == "tool":
+            content = str(message.content)
+            if content and not content.startswith("NO_RESULTS:"):
+                evidence_found = True
+        elif message.type == "ai":
+            break
 
     # Track searches made by the researcher ai output
     for message in reversed(state["messages"]):
@@ -88,13 +97,10 @@ def update_searches(state: ResearchState):
                         searches.append(topic)
             break
 
-    # Store the actual tool result
-    for message in reversed(state["messages"]):
-        if message.type == "tool":
-            sources.append(message.content)
-            break
+    print("[DEBUG] evidence_found:", evidence_found)
 
     return {
         "searches_done": searches,
         "sources_used": sources,
+        "evidence_found": evidence_found,
     }

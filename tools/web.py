@@ -38,6 +38,6 @@ def search_web(topic: str, state: Annotated[dict, InjectedState]) -> str:
         )
 
     if not results:
-        return f"No web results found for: {topic}"
+        return f"NO_RESULTS: No web results found for: {topic}"
 
     return "\n\n".join(results)

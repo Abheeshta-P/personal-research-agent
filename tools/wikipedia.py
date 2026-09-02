@@ -25,7 +25,7 @@ def search_wikipedia(topic: str) -> str:
     results = data["query"]["search"]
 
     if not results:
-        return f"No Wikipedia results found for: {topic}"
+        return f"NO_RESULTS: No Wikipedia results found for: {topic}"
 
     # (expression for item in collection) 
     # [...] → list comprehension → creates a list immediately
@@ -66,7 +66,7 @@ def get_wikipedia_article(title: str) -> str:
     extract = page.get("extract")
 
     if not extract:
-        return f"No article content found for: {title}"
+        return f"NO_RESULTS: No article content found for: {title}"
 
     return (
         f"SOURCE:\n"

@@ -3,9 +3,18 @@ import xml.etree.ElementTree as ET
 
 from langchain_core.tools import tool
 
+
+
 @tool
 def search_arxiv(topic:str) -> str:
     """Search arXiv for research papers on a topic."""
+
+    import re
+
+    topic_words = [
+        word.lower()
+        for word in re.findall(r"\b[a-zA-Z]{3,}\b", topic)
+    ]
 
     url = "https://export.arxiv.org/api/query"
 
@@ -29,10 +38,10 @@ def search_arxiv(topic:str) -> str:
         response.raise_for_status()
 
     except requests.exceptions.Timeout:
-        return f"arXiv search timed out for: {topic}"
+        return f"NO_RESULTS: arXiv search timed out for: {topic}"
 
     except requests.exceptions.RequestException as e:
-        return f"arXiv search failed: {e}"
+        return f"NO_RESULTS: arXiv search failed: {e}"
 
     root = ET.fromstring(response.text)
 
@@ -55,6 +64,21 @@ def search_arxiv(topic:str) -> str:
         authors = entry.findall("atom:author/atom:name", namespace)
         published = entry.find("atom:published", namespace)
         link = entry.find("atom:id", namespace)
+        summary = entry.find("atom:summary", namespace)
+
+
+        # At least one meaningful topic term must appear
+        # in the paper title or abstract.
+        title_text = title.text.strip().lower()
+        summary_text = summary.text.strip().lower()
+
+        relevant = any(
+            word in title_text or word in summary_text
+            for word in topic_words
+        )
+
+        if not relevant:
+            continue
 
         results.append(
             f"SOURCE:\n"
@@ -65,6 +89,6 @@ def search_arxiv(topic:str) -> str:
         )
 
     if not results:
-        return f"No arXiv papers found for: {topic}"
+        return f"NO_RESULTS: No arXiv papers found for: {topic}"
 
     return "\n\n".join(results)

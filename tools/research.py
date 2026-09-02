@@ -21,7 +21,15 @@ def research(topic: str) -> str:
         "searches_done": [],
         "sources_used": [],
         "source": source,
+        "evidence_found": False,
     })
+
+    print("\n[DEBUG] research() FINAL RESULT:")
+    print("evidence_found:", result.get("evidence_found"))
+    print("last_message:", result["messages"][-1])
+
+    if not result.get("evidence_found", False):
+     return f"RESEARCH_FAILED: Could not find relevant information in the selected source: {source}"
 
     return result["messages"][-1].text
 

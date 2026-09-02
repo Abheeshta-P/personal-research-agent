@@ -15,7 +15,13 @@ result = graph.invoke({
     ],
 })
 
-answer = result["messages"][-1].text
+last_message = result["messages"][-1]
+answer = getattr(last_message, "text", None) or getattr(last_message, "content", str(last_message))
+
+is_failed = False
+if isinstance(answer, str) and answer.startswith("RESEARCH_FAILED:"):
+    is_failed = True
+    answer = answer.replace("RESEARCH_FAILED:", "").strip()
 
 print("\n" + "─" * 50)
 print("ANSWER")
@@ -23,7 +29,8 @@ print("─" * 50)
 print(answer)
 print("─" * 50)
 
-save_research_prompt(
-    question,
-    answer,
-)
+if not is_failed:
+    save_research_prompt(
+        question,
+        answer,
+    )

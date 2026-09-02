@@ -46,6 +46,12 @@ def agent(state: AgentState):
     - Include the retrieved sources in your final answer.
     - Only use URLs explicitly provided by the research result.
     - Do not invent, modify, or hallucinate URLs.
+
+    If the research tool returns a message starting with "RESEARCH_FAILED:":
+    - Return that message exactly.
+    - Do not answer the user's question using your own knowledge.
+    - Do not retry the research tool.
+    - Do not replace the failure message with your own answer.
     """),
             *state["messages"]
     ]
