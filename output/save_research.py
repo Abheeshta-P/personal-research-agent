@@ -1,29 +1,34 @@
 from pathlib import Path
 import re
 
-def create_filename(topic:str, extention:str) -> str:
+# Creates a sanitized filename from the research topic
+def create_filename(topic: str, extension: str) -> str:
     """Create a safe filename from the research topic."""
 
+    # Remove non-alphanumeric characters (except spaces and hyphens)
     filename = re.sub(
         r"[^a-zA-Z0-9\s-]",
         "",
         topic,
     )
 
+    # Replace whitespace sequences with single underscores
     filename = re.sub(
         r"\s+",
         "_",
         filename.strip(),
     )
 
+    # Truncate filename length
     filename = filename[:80]
 
     if not filename:
         filename = "research"
 
-    return f"{filename}.{extention}"
+    return f"{filename}.{extension}"
 
 
+# Converts basic Markdown markup to clean plain text format
 def markdown_to_text(content: str) -> str:
     """Convert basic Markdown formatting into plain text."""
 
@@ -39,7 +44,7 @@ def markdown_to_text(content: str) -> str:
         text,
     )
 
-    # Headings
+    # Strip heading symbols
     text = re.sub(
         r"^#{1,6}\s*",
         "",
@@ -47,28 +52,28 @@ def markdown_to_text(content: str) -> str:
         flags=re.MULTILINE,
     )
 
-    # Bold
+    # Strip bold markup
     text = re.sub(
         r"\*\*(.*?)\*\*",
         r"\1",
         text,
     )
 
-    # Italic
+    # Strip italic markup
     text = re.sub(
         r"\*(.*?)\*",
         r"\1",
         text,
     )
 
-    # Inline code
+    # Strip inline code ticks
     text = re.sub(
         r"`([^`]+)`",
         r"\1",
         text,
     )
 
-    # Horizontal rules
+    # Strip horizontal rules
     text = re.sub(
         r"^\s*[-*_]{3,}\s*$",
         "",
@@ -78,6 +83,7 @@ def markdown_to_text(content: str) -> str:
 
     return text.strip()
 
+# Generates an incremental unique filename to avoid overwriting existing files
 def get_unique_path(file_path: Path) -> Path:
     """Return a unique path without overwriting an existing file."""
 
@@ -95,6 +101,7 @@ def get_unique_path(file_path: Path) -> Path:
         counter += 1
 
 
+# Saves generated research to research-output/ in Markdown (.md) or Text (.txt) format
 def save_research(
         topic: str,
         content: str,
@@ -106,17 +113,15 @@ def save_research(
         return "Unsupported file format."
 
     research_dir = Path("research-output")
-
     research_dir.mkdir(exist_ok=True)
 
     if extension == "txt":
         content = markdown_to_text(content)
 
     filename = create_filename(topic, extension)
+    file_path = research_dir / filename
 
-    file_path = research_dir/filename
-
-     # Existing file
+    # Handle existing file conflict interactively
     if file_path.exists():
 
         print(f"\nA file already exists:")
@@ -141,6 +146,7 @@ def save_research(
         else:
             return "Invalid choice. Research not saved."
 
+    # Write research text to disk
     file_path.write_text(
         content,
         encoding="utf-8",

@@ -9,7 +9,7 @@ from agents.model import model
 from tools.calculator import calculator
 from tools.research import research
 
-# create 2 tool node (main tools)
+# Tool execution node for the main graph
 tool_node = ToolNode([
     calculator,
     research,

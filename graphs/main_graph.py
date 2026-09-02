@@ -2,7 +2,9 @@ from langgraph.graph import StateGraph, START, END
 from states.state import AgentState
 from agents.main_agent import agent, tool_node
 
-# conditional rendering of tools in main graph
+# Routing after the main agent runs:
+# If the agent requests a tool call (e.g., calculator or research), route to "tools".
+# Otherwise, finish the graph and return the response.
 def should_continue(state: AgentState):
     last_message = state["messages"][-1]
 
@@ -11,6 +13,10 @@ def should_continue(state: AgentState):
 
     return END
 
+# Routing after tool execution:
+# If the research tool failed to find evidence in the selected source, terminate immediately at END
+# to prevent the main agent LLM from hallucinating an answer from its internal memory.
+# Otherwise, route back to "agent" for synthesis.
 def should_continue_after_tools(state: AgentState):
     last_message = state["messages"][-1]
     
@@ -20,22 +26,28 @@ def should_continue_after_tools(state: AgentState):
 
     return "agent"
 
+# Build the main StateGraph
 graph_builder = StateGraph(AgentState)
 
-# adding node 
-graph_builder.add_node("agent",agent)
-graph_builder.add_node("tools",tool_node)
+# Add agent and tool nodes
+graph_builder.add_node("agent", agent)
+graph_builder.add_node("tools", tool_node)
 
-# add edge
+# Connect START to the main agent node
 graph_builder.add_edge(START, "agent")
 
+# Add conditional routing from the agent
 graph_builder.add_conditional_edges(
     "agent",
     should_continue
 )
 
-# always returns to agent graph_builder.add_edge("tools", "agent") hence add conditionals
-graph_builder.add_conditional_edges("tools", should_continue_after_tools, {"agent":"agent", END:END})
+# Add conditional routing after tool execution
+graph_builder.add_conditional_edges(
+    "tools",
+    should_continue_after_tools,
+    {"agent": "agent", END: END}
+)
 
-#complete the graph/ create it
+# complete the graph/ create it
 graph = graph_builder.compile()

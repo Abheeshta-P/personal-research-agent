@@ -1,3 +1,4 @@
+# Prompts the user to save research output in Markdown or plain Text format
 def save_research_prompt(question: str, answer: str):
 
     print("\n" + "─" * 50)
@@ -18,8 +19,10 @@ def save_research_prompt(question: str, answer: str):
 
     from output.save_research import save_research
 
+    # Map menu selection to appropriate file extension
     extension = "md" if choice == "1" else "txt"
 
+    # Save research to output directory
     result = save_research(
         topic=question,
         content=answer,

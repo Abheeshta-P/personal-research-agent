@@ -4,12 +4,13 @@ from agents.model import model
 from config import get_research_tools
 from states.state import ResearchState
 
-# research agent
+# Specialized researcher agent node: dynamically binds tools for the selected source
 def researcher(state: ResearchState):
     source = state["source"]
     searches = state.get("searches_done", [])
     sources_used = state.get("sources_used", [])
 
+    # Dynamically retrieve and bind tools corresponding to the user-selected source
     research_tools = get_research_tools(source)
     research_model = model.bind_tools(research_tools)
 
@@ -54,39 +55,32 @@ def researcher(state: ResearchState):
         *state["messages"]
     ]
 
-    print("\n[DEBUG] researcher()")
-    print("source:", source)
-    print("messages:", state["messages"])
-    print("tools:", [tool.name for tool in research_tools])
     response = research_model.invoke(messages)
-    print("[DEBUG] researcher response:")
-    print("content:", response.content)
-    print("tool_calls:", response.tool_calls)
 
     return {
         "messages": [response]
     }
 
-# between the tool calls track the search and search source
+# Tracks search history, source results, and detects whether valid evidence was found across steps
 def update_searches(state: ResearchState):
 
-    print("\n[DEBUG] update_searches() ENTERED")
-    print("messages:", state["messages"])
     searches = state.get("searches_done", []).copy()
     sources = state.get("sources_used", []).copy()
 
+    # Preserve any evidence found in earlier turns
     evidence_found = state.get("evidence_found", False)
 
-    # Evidence Reset in Multi-Step Research
+    # Inspect tool responses in the current step to determine if valid evidence exists
     for message in reversed(state["messages"]):
         if message.type == "tool":
             content = str(message.content)
+            # If tool returns content that does not start with NO_RESULTS, evidence was found
             if content and not content.startswith("NO_RESULTS:"):
                 evidence_found = True
         elif message.type == "ai":
             break
 
-    # Track searches made by the researcher ai output
+    # Track distinct search queries attempted by the researcher ai output
     for message in reversed(state["messages"]):
         if hasattr(message, "tool_calls") and message.tool_calls:
             for tool_call in message.tool_calls:
@@ -96,8 +90,6 @@ def update_searches(state: ResearchState):
                     if topic not in searches:
                         searches.append(topic)
             break
-
-    print("[DEBUG] evidence_found:", evidence_found)
 
     return {
         "searches_done": searches,

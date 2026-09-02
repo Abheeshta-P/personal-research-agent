@@ -6,10 +6,12 @@ from langgraph.graph.message import add_messages
 from langchain_core.messages import AnyMessage
 
 # each node looks like this in that graph 
+# Main agent state: maintains conversational message history
 class AgentState(TypedDict):
-    messages: Annotated[list[AnyMessage],add_messages]
+    messages: Annotated[list[AnyMessage], add_messages]
 
-# Make the research request itself a tool/route that Gemini can choose.
+# Make the research request itself a tool/route that Gemini can choose
+# Research subgraph state: tracks messages, queries, used sources, and evidence discovery
 class ResearchState(TypedDict): 
     messages: Annotated[list[AnyMessage], add_messages]
     searches_done: list[str]

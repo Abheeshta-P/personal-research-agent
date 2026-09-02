@@ -3,6 +3,7 @@ from tools.files import search_files
 from tools.web import search_web
 from tools.wikipedia import search_wikipedia, get_wikipedia_article
 
+# Available research sources mapped to option numbers
 RESEARCH_SOURCES = {
     "1": "Wikipedia",
     "2": "Web",
@@ -11,6 +12,7 @@ RESEARCH_SOURCES = {
     "5": "All",
 }
 
+# Mapping of research sources to their specific tool implementations
 SOURCE_TOOLS = {
     "Wikipedia": [
         search_wikipedia,
@@ -23,8 +25,6 @@ SOURCE_TOOLS = {
 
     "Research Papers": [
         search_arxiv,
-        # search_ieee,
-        # search_acm,
     ],
 
     "Files": [
@@ -32,27 +32,24 @@ SOURCE_TOOLS = {
     ],
 }
 
-# util to choose a source
+# Prompts user via CLI to choose their desired research source
 def choose_source():
     print("\nChoose a research source:")
 
     for key, source in RESEARCH_SOURCES.items():
         print(f"{key}. {source}")
 
-    choice = input("Enter your choice: ")
+    choice = input("Enter your choice: ").strip()
 
-    # if rubbish is put in the choice falls back to All 
+    # Default fallback to "All" if an unrecognized choice is provided
     return RESEARCH_SOURCES.get(choice, "All")
 
-# util to get the tool assosiated with the source
+# Returns the list of tool functions bound to a specific research source
 def get_research_tools(source: str):
     if source == "All":
         tools = []
-
         for source_tools in SOURCE_TOOLS.values():
-            # you get one flat list
             tools.extend(source_tools)
-        
         return tools
 
     return SOURCE_TOOLS.get(source, [])
