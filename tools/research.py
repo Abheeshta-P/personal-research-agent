@@ -10,10 +10,11 @@ from graphs.research_graph import research_graph
 def research(topic: str) -> str:
     """Research a topic using a user-selected source."""
     # select source when research tool call is done
-
+    
+    # Prompt user to select their desired research source (Wikipedia, Web, ArXiv, Files, All)
     source = choose_source()
 
-    # call the llm with research tool as first step 
+    # Invoke the specialized research subgraph with initialized state
     result = research_graph.invoke({ 
         "messages": [
             HumanMessage(content=f"Research {topic}")
@@ -24,12 +25,11 @@ def research(topic: str) -> str:
         "evidence_found": False,
     })
 
-    print("\n[DEBUG] research() FINAL RESULT:")
-    print("evidence_found:", result.get("evidence_found"))
-    print("last_message:", result["messages"][-1])
-
+    # If no evidence was retrieved from the selected source, return structured failure code
     if not result.get("evidence_found", False):
-     return f"RESEARCH_FAILED: Could not find relevant information in the selected source: {source}"
+        return f"RESEARCH_FAILED: Could not find relevant information in the selected source: {source}"
 
-    return result["messages"][-1].text
+    # Safely extract the synthesized answer
+    last_msg = result["messages"][-1]
+    return getattr(last_msg, "text", None) or getattr(last_msg, "content", str(last_msg))
 

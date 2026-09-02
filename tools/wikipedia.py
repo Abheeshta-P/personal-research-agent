@@ -19,10 +19,14 @@ def search_wikipedia(topic: str) -> str:
         "User-Agent": "ai-research-agent/0.1"
     }
 
-    response = requests.get(url, params=params, headers=headers)
-    data = response.json()
+    try:
+        response = requests.get(url, params=params, headers=headers, timeout=15)
+        response.raise_for_status()
+        data = response.json()
+    except Exception as e:
+        return f"NO_RESULTS: Wikipedia search failed: {e}"
 
-    results = data["query"]["search"]
+    results = data.get("query", {}).get("search", [])
 
     if not results:
         return f"NO_RESULTS: No Wikipedia results found for: {topic}"
@@ -57,12 +61,18 @@ def get_wikipedia_article(title: str) -> str:
         "User-Agent": "ai-research-agent/0.1"
     }
 
-    response = requests.get(url, params=params, headers=headers)
-    data = response.json()
+    try:
+        response = requests.get(url, params=params, headers=headers, timeout=15)
+        response.raise_for_status()
+        data = response.json()
+    except Exception as e:
+        return f"NO_RESULTS: Failed to fetch Wikipedia article: {e}"
 
-    pages = data["query"]["pages"]
+    pages = data.get("query", {}).get("pages", {})
+    if not pages:
+        return f"NO_RESULTS: No article content found for: {title}"
+
     page = next(iter(pages.values()))
-
     extract = page.get("extract")
 
     if not extract:
