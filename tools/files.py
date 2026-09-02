@@ -49,6 +49,15 @@ def read_file(file_path: Path) -> str:
 def search_files(topic:str) -> str:
     """Search local documents for information related to a topic."""
 
+    if not DOCUMENTS_DIR.exists():
+        return f"NO_RESULTS: Documents directory '{DOCUMENTS_DIR}' does not exist."
+
+    import re
+    topic_words = [
+        word.lower()
+        for word in re.findall(r"\b[a-zA-Z0-9_-]{3,}\b", topic)
+    ]
+
     results = []
 
     # go through all files 
@@ -61,10 +70,14 @@ def search_files(topic:str) -> str:
             continue
 
         text = read_file(file_path)
-
         filename = file_path.stem.lower()
+        text_lower = text.lower()
 
-        if topic.lower() in filename or topic.lower() in text.lower():
+        matched = (topic.lower() in filename or topic.lower() in text_lower)
+        if not matched and topic_words:
+            matched = any(word in filename or word in text_lower for word in topic_words)
+
+        if matched:
             results.append(
                 f"SOURCE:\n"
                 f"Title: {file_path.name}\n"
@@ -73,6 +86,6 @@ def search_files(topic:str) -> str:
             )
 
     if not results:
-        return f"No relevant files found for: {topic}"
+        return f"NO_RESULTS: No relevant files found for: {topic}"
 
     return "\n\n".join(results)
