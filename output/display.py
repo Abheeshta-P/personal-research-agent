@@ -1,8 +1,7 @@
 # Prompts the user to save research output in Markdown or plain Text format
 def save_research_prompt(question: str, answer: str):
 
-    print("\n" + "─" * 50)
-    print("How would you like to save this research?")
+    print("\nHow would you like to save this research?")
     print("1. Markdown (.md)")
     print("2. Text (.txt)")
     print("3. Don't save")

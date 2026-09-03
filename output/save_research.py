@@ -34,17 +34,23 @@ def markdown_to_text(content: str) -> str:
 
     text = content
 
-     # Markdown links:
-    # [Wikipedia](https://...)
-    # ->
-    # Wikipedia (https://...)
+    # Markdown links:
+    # [Wikipedia](https://...) -> Wikipedia (https://...)
+    # [https://...] (https://...) -> https://...
+    def _clean_link(match):
+        label = match.group(1).strip()
+        url = match.group(2).strip()
+        if label == url:
+            return url
+        return f"{label} ({url})"
+
     text = re.sub(
         r"\[([^\]]+)\]\(([^)]+)\)",
-        r"\1 (\2)",
+        _clean_link,
         text,
     )
 
-    # Strip heading symbols
+    # Strip heading symbols (# Heading -> Heading)
     text = re.sub(
         r"^#{1,6}\s*",
         "",
@@ -52,16 +58,31 @@ def markdown_to_text(content: str) -> str:
         flags=re.MULTILINE,
     )
 
-    # Strip bold markup
+    # Strip horizontal divider rules (---, ***, ___, * * *, etc.)
     text = re.sub(
-        r"\*\*(.*?)\*\*",
+        r"^\s*([-*_]\s*){3,}\s*$",
+        "",
+        text,
+        flags=re.MULTILINE,
+    )
+
+    # Strip bold-italic markup within a line
+    text = re.sub(
+        r"\*\*\*([^\n]+?)\*\*\*",
         r"\1",
         text,
     )
 
-    # Strip italic markup
+    # Strip bold markup within a line
     text = re.sub(
-        r"\*(.*?)\*",
+        r"\*\*([^\n]+?)\*\*",
+        r"\1",
+        text,
+    )
+
+    # Strip italic markup within a line while preserving bullet points
+    text = re.sub(
+        r"(?<!\*)\*([^\n*]+?)\*(?!\*)",
         r"\1",
         text,
     )
@@ -73,12 +94,11 @@ def markdown_to_text(content: str) -> str:
         text,
     )
 
-    # Strip horizontal rules
+    # Clean up excessive newlines
     text = re.sub(
-        r"^\s*[-*_]{3,}\s*$",
-        "",
+        r"\n{3,}",
+        "\n\n",
         text,
-        flags=re.MULTILINE,
     )
 
     return text.strip()

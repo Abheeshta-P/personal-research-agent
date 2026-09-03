@@ -4,6 +4,7 @@ from langchain_core.messages import HumanMessage
 from graphs.main_graph import graph
 
 from output.display import save_research_prompt
+from output.save_research import markdown_to_text
 
 # --------------------------- RUN ---------------------------------
 
@@ -28,14 +29,12 @@ if isinstance(answer, str) and answer.startswith("RESEARCH_FAILED:"):
     # Strip the internal failure prefix for clean user display
     answer = answer.replace("RESEARCH_FAILED:", "").strip()
 
-print("\n" + "─" * 50)
-print("ANSWER")
-print("─" * 50)
-print(answer)
-print("─" * 50)
+# Print clean plain text to console (stripping raw markdown asterisks, hashes, and link syntax)
+print(f"\nAnswer:\n{markdown_to_text(answer)}\n")
 
 # Only prompt to save research if valid content was generated
 if not is_failed:
+    print("\nNote: AI-generated research may contain inaccuracies or hallucinations. Please cross-check important facts with the cited sources.")
     save_research_prompt(
         question,
         answer,
