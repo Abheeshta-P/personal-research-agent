@@ -16,7 +16,7 @@ def search_arxiv(topic: str) -> str:
     # Remove extra quotes and clean the query string
     clean_topic = re.sub(r'["\']', '', topic).strip()
 
-    # Extract words with 3+ characters
+    # Formulate query: combine exact phrase match with top keywords joined by AND
     words = [w for w in re.findall(r"\b\w+\b", clean_topic) if len(w) > 2]
     if len(words) >= 2:
         search_query = f'all:"{clean_topic}" OR ({" AND ".join(f"all:{w}" for w in words[:3])})'
@@ -31,24 +31,39 @@ def search_arxiv(topic: str) -> str:
         "max_results": 5,
     }
 
+    # Set descriptive User-Agent header to avoid request throttling
     headers = {
-        "User-Agent": "ai-research-agent/0.1"
+        "User-Agent": "PersonalResearchAgent/1.0"
     }
 
-    try:
-        response = requests.get(
-            url,
-            params=params,
-            headers=headers,
-            timeout=30,
-        )
-        response.raise_for_status()
+    import time
+    response = None
+    last_error = None
 
-    except requests.exceptions.Timeout:
-        return f"NO_RESULTS: arXiv search timed out for: {topic}"
+    # Retry loop: allow up to 2 attempts (1 initial + 1 retry) with a 60s timeout for peak server loads
+    for attempt in range(2):
+        try:
+            response = requests.get(
+                url,
+                params=params,
+                headers=headers,
+                timeout=60,
+            )
+            response.raise_for_status()
+            break
+        except requests.exceptions.Timeout:
+            last_error = f"NO_RESULTS: arXiv search timed out for: {topic}"
+            if attempt == 0:
+                print("arXiv is taking longer than expected, retrying...")
+                time.sleep(2)
+        except requests.exceptions.RequestException as e:
+            last_error = f"NO_RESULTS: arXiv search failed: {e}"
+            if attempt == 0:
+                time.sleep(2)
 
-    except requests.exceptions.RequestException as e:
-        return f"NO_RESULTS: arXiv search failed: {e}"
+    # Return recorded failure if all attempts fail
+    if response is None or not response.ok:
+        return last_error or f"NO_RESULTS: arXiv search failed for: {topic}"
 
     try:
         root = ET.fromstring(response.text)

@@ -25,15 +25,29 @@ def research(topic: str) -> str:
         "evidence_found": False,
     })
 
-    # If no evidence was retrieved from the selected source, return structured failure code
+    # If no evidence was retrieved from the selected source, check for timeout, rate limit, or connection errors
     if not result.get("evidence_found", False):
+        for msg in reversed(result.get("messages", [])):
+            if msg.type == "tool":
+                content_str = str(msg.content)
+                lower_c = content_str.lower()
+                # Surface specific infrastructure errors to the user rather than claiming no information exists
+                if "timed out" in lower_c:
+                    return f"RESEARCH_FAILED: Search timed out for source: {source}. Please try again."
+                elif "quota" in lower_c or "rate limit" in lower_c or "429" in lower_c:
+                    return f"RESEARCH_FAILED: Rate limit reached for source: {source}. Please wait a moment and try again."
+                elif "missing tavily_api_key" in lower_c or "api key" in lower_c:
+                    return f"RESEARCH_FAILED: API key error for source {source}. Please check your environment variables."
+                elif "search failed" in lower_c:
+                    return f"RESEARCH_FAILED: Connection to source {source} failed: {content_str.replace('NO_RESULTS:', '').strip()}"
+                break
         return f"RESEARCH_FAILED: Could not find relevant information in the selected source: {source}"
 
     # Safely extract the synthesized answer
     last_msg = result["messages"][-1]
     answer_text = getattr(last_msg, "text", None) or getattr(last_msg, "content", str(last_msg))
 
-    # If researcher stated no relevant information was found, format as failure
+    # Catch cases where the researcher LLM judged retrieved documents as irrelevant and stated no info found
     if isinstance(answer_text, str) and "could not find relevant information in the selected source" in answer_text.lower():
         return f"RESEARCH_FAILED: Could not find relevant information in the selected source: {source}"
 
