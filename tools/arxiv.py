@@ -13,16 +13,20 @@ def search_arxiv(topic: str) -> str:
 
     import re
 
-    # Extract meaningful keywords of 3+ letters to verify query relevance
-    topic_words = [
-        word.lower()
-        for word in re.findall(r"\b[a-zA-Z]{3,}\b", topic)
-    ]
+    # Remove extra quotes and clean the query string
+    clean_topic = re.sub(r'["\']', '', topic).strip()
+
+    # Extract words with 3+ characters
+    words = [w for w in re.findall(r"\b\w+\b", clean_topic) if len(w) > 2]
+    if len(words) >= 2:
+        search_query = f'all:"{clean_topic}" OR ({" AND ".join(f"all:{w}" for w in words[:3])})'
+    else:
+        search_query = f"all:{clean_topic}"
 
     url = "https://export.arxiv.org/api/query"
 
     params = {
-        "search_query": f'all:"{topic}"',
+        "search_query": search_query,
         "start": 0,
         "max_results": 5,
     }
@@ -68,24 +72,13 @@ def search_arxiv(topic: str) -> str:
         if title is None or published is None or link is None:
             continue
 
-        title_text = (title.text or "").strip().lower()
-        summary_text = (summary.text or "").strip().lower() if summary is not None else ""
-
-        # Ensure at least one meaningful topic keyword appears in the title or summary
-        relevant = any(
-            word in title_text or word in summary_text
-            for word in topic_words
-        ) if topic_words else True
-
-        if not relevant:
-            continue
-
         results.append(
             f"SOURCE:\n"
             f"Title: {(title.text or '').strip()}\n"
             f"URL: {(link.text or '').strip()}\n"
             f"Authors: {', '.join((author.text or '').strip() for author in authors)}\n"
-            f"Published: {(published.text or '')[:10]}"
+            f"Published: {(published.text or '')[:10]}\n\n"
+            f"CONTENT:\n{(summary.text or '').strip() if summary is not None else ''}"
         )
 
     if not results:

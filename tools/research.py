@@ -31,5 +31,11 @@ def research(topic: str) -> str:
 
     # Safely extract the synthesized answer
     last_msg = result["messages"][-1]
-    return getattr(last_msg, "text", None) or getattr(last_msg, "content", str(last_msg))
+    answer_text = getattr(last_msg, "text", None) or getattr(last_msg, "content", str(last_msg))
+
+    # If researcher stated no relevant information was found, format as failure
+    if isinstance(answer_text, str) and "could not find relevant information in the selected source" in answer_text.lower():
+        return f"RESEARCH_FAILED: Could not find relevant information in the selected source: {source}"
+
+    return answer_text
 

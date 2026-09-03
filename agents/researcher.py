@@ -28,13 +28,14 @@ def researcher(state: ResearchState):
         Only use the tools available to you for that source.
 
         IMPORTANT:
-        - You MUST base your answer only on evidence returned by the selected source.
-        - If the selected source cannot find relevant information, DO NOT answer from your own knowledge.
+        - You MUST base your answer ONLY on evidence returned by the selected source tools.
+        - If the selected source tools cannot find relevant information, or if retrieved results are unrelated to the user's question, DO NOT answer from your own knowledge.
         - Instead return exactly:
           "Could not find relevant information in the selected source: {source}"
         - Never invent or fill gaps using your own knowledge.
         - Never use another source.
         - Always research before answering.
+        - Never answer without explicitly citing sources from the tool results.
 
         Previous searches:
         {searches}
@@ -81,6 +82,8 @@ def update_searches(state: ResearchState):
             # If tool returns content that does not start with NO_RESULTS, evidence was found
             if content and not content.startswith("NO_RESULTS:"):
                 evidence_found = True
+                if content not in sources:
+                    sources.append(content)
         elif message.type == "ai":
             break
 
