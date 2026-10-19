@@ -106,8 +106,11 @@ Never commit `.env` or expose API keys.
 ## Run
 
 ```bash
-uv run graph.py
+uv run main.py
 ```
+
+## Screenshot
+![Screenshot PRA](image.webp)
 
 ## Roadmap
 
@@ -144,5 +147,6 @@ The next stages are ordered based on what will be built next, with each stage bu
 
 8. **Research History**
    - Store previous research sessions and allow them to be retrieved later.
+
 
 > Under development. All rights reserved to [Abheeshta-P](https://github.com/Abheeshta-P).
