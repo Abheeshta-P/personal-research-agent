@@ -1,10 +1,41 @@
 import streamlit as st
 from pathlib import Path
 
+@st.dialog("Delete document?")
+def confirm_delete(filename):
+    st.write(f"Are you sure you want to delete **{filename}**?")
+
+    col_cancel, col_delete = st.columns(2)
+
+    with col_cancel:
+        if st.button("Cancel", use_container_width=True):
+            st.rerun()
+
+    with col_delete:
+        if st.button("Delete", type="primary", use_container_width=True):
+            try:
+                (Path("data/documents") / filename).unlink()
+                st.toast(f"Deleted {filename}.")
+                st.rerun()
+            except OSError:
+                st.error(f"Could not delete {filename}.")
+
 st.set_page_config(
     page_title="Personal Research Agent",
     page_icon="🌐",
     layout="wide",
+)
+
+st.markdown(
+    """
+    <style>
+    div[data-testid="stButton"] button {
+        padding: 0px 10px;
+        min-height: 30px;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
 )
 
 st.title("Personal Research Agent")
@@ -23,10 +54,19 @@ with st.sidebar:
 
     st.caption(f"{len(files)} document(s)")
 
-    if files:
-        for file in files:
-            with st.container():
-                st.markdown(f"**{file.name}**")
+    for file in files:
+        col_name, col_delete = st.columns([5, 1])
+
+        with col_name:
+            st.markdown(f"**{file.name}**")
+
+        with col_delete:
+            if st.button(
+                "X",
+                key=f"delete_{file.name}",
+                help=f"Delete {file.name}",
+            ):
+                confirm_delete(file.name)
 
     st.divider()
 
