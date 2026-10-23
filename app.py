@@ -1,4 +1,5 @@
 import streamlit as st
+from pathlib import Path
 
 st.set_page_config(
     page_title="Personal Research Agent",
@@ -10,15 +11,51 @@ st.title("Personal Research Agent")
 st.caption("Research, explore, and organize your findings.")
 
 with st.sidebar:
-    st.header("Your Documents")
-    st.caption("Uploaded files will appear here.")
+    st.header("Uploaded Documents")
 
-    st.button(
-        "Upload documents",
-        use_container_width=True,
-        disabled=True,
-        help="File uploads will be implemented next.",
+    documents_dir = Path("data/documents")
+    documents_dir.mkdir(parents=True, exist_ok=True)
+
+    files = sorted(
+        file for file in documents_dir.iterdir()
+        if file.is_file()
     )
+
+    st.caption(f"{len(files)} document(s)")
+
+    if files:
+        for file in files:
+            with st.container():
+                st.markdown(f"**{file.name}**")
+
+    st.divider()
+
+    if "uploader_key" not in st.session_state:
+        st.session_state.uploader_key = 0
+
+    uploaded_file = st.file_uploader(
+        "Upload a document",
+        type=["txt", "md", "pdf", "docx"],
+        max_upload_size=50,
+        key=f"document_uploader_{st.session_state.uploader_key}",
+    )
+
+    if uploaded_file:
+        destination = documents_dir / Path(uploaded_file.name).name
+
+        try:
+            if destination.exists():
+                st.toast("A document with this name already exists.", icon="⚠️")
+                st.session_state.uploader_key += 1
+                st.rerun()
+            else:
+                destination.write_bytes(uploaded_file.getvalue())
+                st.toast(f"{uploaded_file.name} uploaded successfully.")
+                st.session_state.uploader_key += 1
+                st.rerun()
+
+        except OSError:
+            st.toast(f"Could not save {uploaded_file.name}.", icon="⚠️")
 
 
 # Research heading and model selection
@@ -46,10 +83,29 @@ question = st.text_area(
     label_visibility="collapsed",
 )
 
+st.subheader("Choose your research sources")
+
+source = st.radio(
+    "Where should the agent look?",
+    options=[
+        "Wikipedia",
+        "Web",
+        "Research Papers (arXiv)",
+        "Files",
+        "All Sources",
+    ],
+    index=4,
+    horizontal=True,
+    help="Choose which sources the agent should use for your research.",
+    label_visibility="collapsed",
+)
+
 if st.button("Start research", type="primary"):
     if question.strip():
         st.info(
-            f"Question captured. Selected model: {model}. "
+            f"Question: {question}\n\n"
+            f"Selected model: {model}\n\n"
+            f"Research sources: {source}\n\n"
             "Agent integration comes next."
         )
     else:
