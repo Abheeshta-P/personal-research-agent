@@ -126,6 +126,7 @@ def save_research(
         topic: str,
         content: str,
         extension: str,
+        auto_unique: bool = False,
 ) -> str:
     """Save research as Markdown or plain text."""
 
@@ -141,30 +142,32 @@ def save_research(
     filename = create_filename(topic, extension)
     file_path = research_dir / filename
 
-    # Handle existing file conflict interactively
+    # Handle existing file conflict interactively or automatically
     if file_path.exists():
-
-        print(f"\nA file already exists:")
-        print(f"{file_path}")
-
-        print("\nWhat would you like to do?")
-        print("1. Overwrite this file")
-        print("2. Save as a new file")
-        print("3. Cancel")
-
-        choice = input("Enter your choice: ").strip()
-
-        if choice == "1":
-            pass
-
-        elif choice == "2":
+        if auto_unique:
             file_path = get_unique_path(file_path)
-
-        elif choice == "3":
-            return "Research not saved."
-
         else:
-            return "Invalid choice. Research not saved."
+            print(f"\nA file already exists:")
+            print(f"{file_path}")
+
+            print("\nWhat would you like to do?")
+            print("1. Overwrite this file")
+            print("2. Save as a new file")
+            print("3. Cancel")
+
+            choice = input("Enter your choice: ").strip()
+
+            if choice == "1":
+                pass
+
+            elif choice == "2":
+                file_path = get_unique_path(file_path)
+
+            elif choice == "3":
+                return "Research not saved."
+
+            else:
+                return "Invalid choice. Research not saved."
 
     # Write research text to disk
     file_path.write_text(
