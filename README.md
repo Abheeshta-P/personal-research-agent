@@ -33,7 +33,7 @@ flowchart TD
     A --> ANS
     ANS --> U
 
-    ANS --> SAVE[Save Research]
+    ANS --> SAVE[Save / Export Research]
     SAVE --> MD[Markdown .md]
     SAVE --> TXT[Plain Text .txt]
 ```
@@ -54,7 +54,9 @@ The system supports:
 - arXiv research papers
 - Local file research (TXT, MD, PDF, DOCX)
 - User-controlled source selection
-- Markdown and plain-text research export
+- Streamlit web interface with interactive research workflow
+- Document upload, preview modal, and library management
+- Markdown and plain-text research export and download
 
 ## Tech Stack
 
@@ -62,6 +64,7 @@ The system supports:
 * Gemini
 * LangChain
 * LangGraph
+* Streamlit
 * Tavily
 * Wikipedia
 * arXiv
@@ -72,19 +75,42 @@ The system supports:
 ```text
 personal-research-agent/
 │
-├── graph.py
+├── agents/
+│   ├── main_agent.py
+│   ├── model.py
+│   └── researcher.py
+│
+├── graphs/
+│   ├── main_graph.py
+│   └── research_graph.py
+│
+├── states/
+│   └── state.py
 │
 ├── tools/
-│   ├── __init__.py
-│   ├── calculator.py
-│   ├── wikipedia.py
-│   ├── web.py
 │   ├── arxiv.py
+│   ├── calculator.py
 │   ├── files.py
+│   ├── research.py
+│   ├── web.py
+│   └── wikipedia.py
+│
+├── output/
+│   ├── display.py
 │   └── save_research.py
 │
-├── research/
+├── data/
+│   └── documents/
 │
+├── research-output/
+│
+├── screenshot/
+│   ├── PRA_CLI.webp
+│   └── PRA_Streamlit.png
+│
+├── app.py
+├── main.py
+├── config.py
 ├── .env
 ├── .gitignore
 ├── pyproject.toml
@@ -105,12 +131,23 @@ Never commit `.env` or expose API keys.
 
 ## Run
 
+### CLI Interface
+
 ```bash
 uv run main.py
 ```
 
+### Streamlit Web Interface
+
+```bash
+uv run streamlit run app.py
+```
+
 ## Screenshot
-![Screenshot PRA](image.webp)
+
+![Screenshot PRA CLI](screenshot/PRA_CLI.webp)
+
+![Screenshot PRA Streamlit](screenshot/PRA_Streamlit.png)
 
 ## Roadmap
 
