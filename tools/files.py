@@ -1,8 +1,13 @@
 from pathlib import Path
 from langchain_core.tools import tool
 
+from langchain_core.documents import Document
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_chroma import Chroma
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
+
 from pypdf import PdfReader
-from docx import Document
+from docx import Document as DocxDocument
 
 # Directory containing local research documents
 DOCUMENTS_DIR = Path("data/documents")
@@ -19,7 +24,7 @@ def read_pdf(file_path: Path) -> str:
 
 # Extract text paragraphs from DOCX files
 def read_docx(file_path: Path) -> str:
-    document = Document(file_path)
+    document = DocxDocument(file_path)
     paragraphs = []
     for paragraph in document.paragraphs:
         if paragraph.text.strip():
@@ -45,53 +50,81 @@ def read_file(file_path: Path) -> str:
 @tool
 def search_files(topic: str) -> str:
     """Search local documents for information related to a topic."""
+    print(f"Searching local documents with RAG for: '{topic}'...")
 
-    print(f"Searching local documents for: '{topic}'...")
+    store = get_vector_store()
 
-    # Ensure document folder exists before searching
-    if not DOCUMENTS_DIR.exists():
-        return f"NO_RESULTS: Documents directory '{DOCUMENTS_DIR}' does not exist."
+    # Retrieve top 3 most relevant chunks with distance scores
+    results = store.similarity_search_with_score(topic,k=3)
 
-    import re
-    # Extract significant alphanumeric keywords (3+ characters)
-    topic_words = [
-        word.lower()
-        for word in re.findall(r"\b[a-zA-Z0-9_-]{3,}\b", topic)
-    ]
-
-    results = []
-
-    # Iterate over all files in the documents directory
-    for file_path in DOCUMENTS_DIR.iterdir():
-        if not file_path.is_file():
-            continue
-
-        if file_path.suffix.lower() not in [".txt", ".md", ".pdf", ".docx"]:
-            continue
-
-        try:
-            text = read_file(file_path)
-        except Exception as e:
-            continue
-
-        filename = file_path.stem.lower()
-        text_lower = text.lower()
-
-        # Match exact topic substring or fallback to individual keyword matches
-        matched = (topic.lower() in filename or topic.lower() in text_lower)
-        if not matched and topic_words:
-            matched = any(word in filename or word in text_lower for word in topic_words)
-
-        if matched:
-            results.append(
-                f"SOURCE:\n"
-                f"Title: {file_path.name}\n"
-                f"URL: local://{file_path.name}\n\n"
-                f"CONTENT:\n{text}"
-            )
-
-    # Return standard failure string if no matching files found
     if not results:
         return f"NO_RESULTS: No relevant files found for: {topic}"
 
-    return "\n\n".join(results)
+    formatted_results = []
+    for doc, score in results:
+        # lower dist means (closer)
+        if score > 0.85:
+            continue
+        
+        formatted_results.append(
+            f"SOURCE:\n"
+            f"Title: {doc.metadata['source']}\n"
+            f"URL: local://{doc.metadata['source']}\n\n"
+            f"CONTENT:\n{doc.page_content}"
+        )
+    
+    if not formatted_results:
+        return f"NO_RESULTS: No relevant files found for: {topic}"
+
+    return "\n\n".join(formatted_results)
+
+def load_and_chunk_documents() -> list[Document]:
+    if not DOCUMENTS_DIR.exists():
+        return []
+
+    splitter = RecursiveCharacterTextSplitter(
+        chunk_size=600,
+        chunk_overlap=100,
+        separators=["\n\n", "\n", ". ", " ", ""],
+    )
+
+    all_docs = []
+
+    for file in DOCUMENTS_DIR.iterdir():
+        if not file.is_file():
+            continue
+
+        text = read_file(file)
+        if not text.strip():
+            continue
+
+        chunks = splitter.split_text(text)
+        for chunk in chunks:
+            all_docs.append(Document(page_content=chunk, metadata={"source":file.name}))
+
+    return all_docs
+
+
+def get_vector_store():
+    CHROMA_DIR = Path("data/chroma")
+    embeddings = GoogleGenerativeAIEmbeddings(model="models/gemini-embedding-001")
+
+    vector_store = Chroma(
+        collection_name = "research_documents",
+        embedding_function=embeddings,
+        persist_directory=str(CHROMA_DIR),
+    )
+
+    current_files = set(f.name for f in DOCUMENTS_DIR.iterdir() if f.is_file()) if DOCUMENTS_DIR.exists() else set()
+    data = vector_store.get()
+    indexed_files = set(m["source"] for m in data["metadatas"]) if data["metadatas"] else set()
+
+    # If documents were added, deleted, or if Chroma is empty, re-sync!
+    if current_files != indexed_files:
+        print("Document changes detected. Syncing vector store...")
+        vector_store.reset_collection()
+        docs = load_and_chunk_documents()
+        if docs:
+            vector_store.add_documents(docs)
+    
+    return vector_store

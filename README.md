@@ -11,16 +11,18 @@ flowchart TD
 
     U[USER] --> A[GEMINI AGENT]
 
-    A -->|Simple question| ANS[Answer]
+    A -->|Greeting / Small talk| GC[Role Clarification]
+    GC --> U
+
     A -->|Calculation| C[Calculator]
     C --> A
 
-    A -->|Research| R[Researcher]
+    A -->|Research Question| R[Researcher]
 
     R -->|Wikipedia| W[Wikipedia]
     R -->|Web| WEB[Tavily Web Search]
     R -->|Research Papers| P[arXiv]
-    R -->|Files| F[Files]
+    R -->|Files| F[Files - ChromaDB RAG]
 
     W --> E[Evidence]
     WEB --> E
@@ -30,7 +32,7 @@ flowchart TD
     E --> R
     R -->|Synthesized answer + Sources| A
 
-    A --> ANS
+    A --> ANS[Answer]
     ANS --> U
 
     ANS --> SAVE[Save / Export Research]
@@ -42,17 +44,18 @@ flowchart TD
 
 The system consists of two agents:
 
-- **Main Agent** — handles user requests, answers directly when possible, performs calculations, and delegates research tasks
-- **Research Agent** — investigates topics using the selected research sources and produces a synthesized answer
+- **Main Agent** — handles user requests, enforces strict research grounding (refusing casual chit-chat and preventing ungrounded answers from memory), performs calculations, and delegates research tasks
+- **Research Agent** — investigates topics using the selected research sources and produces a synthesized answer with citations
 
 The system supports:
 
-- Direct question answering
+- Strict research delegation and anti-hallucination guardrails
 - Mathematical calculations
 - Wikipedia research
 - Tavily web research
 - arXiv research papers
-- Local file research (TXT, MD, PDF, DOCX)
+- Local file research with semantic RAG (ChromaDB vector store, Gemini embeddings, chunking, and similarity thresholding)
+- Dynamic auto-sync between disk documents and vector collection
 - User-controlled source selection
 - Streamlit web interface with interactive research workflow
 - Document upload, preview modal, and library management
@@ -64,6 +67,7 @@ The system supports:
 * Gemini
 * LangChain
 * LangGraph
+* ChromaDB
 * Streamlit
 * Tavily
 * Wikipedia
@@ -100,6 +104,7 @@ personal-research-agent/
 │   └── save_research.py
 │
 ├── data/
+│   ├── chroma/
 │   └── documents/
 │
 ├── research-output/
@@ -153,9 +158,10 @@ uv run streamlit run app.py
 
 The next stages are ordered based on what will be built next, with each stage building on the previous one.
 
-1. **File-based RAG**
-   - Add semantic retrieval for local documents using chunking, embeddings, and vector search.
-   - Improve the existing file research capability beyond keyword-based retrieval.
+1. **File-based RAG (Completed)**
+   - Added semantic retrieval for local documents using chunking (`RecursiveCharacterTextSplitter`), Gemini embeddings (`models/gemini-embedding-001`), and ChromaDB persistent vector store.
+   - Dynamic document synchronization between disk documents and Chroma collection.
+   - Distance thresholding to cleanly reject irrelevant queries without hallucinating.
 
 2. **File Upload**
    - Allow users to upload documents directly to the research agent.
