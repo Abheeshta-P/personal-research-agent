@@ -163,9 +163,10 @@ The next stages are ordered based on what will be built next, with each stage bu
    - Dynamic document synchronization between disk documents and Chroma collection.
    - Distance thresholding to cleanly reject irrelevant queries without hallucinating.
 
-2. **File Upload**
-   - Allow users to upload documents directly to the research agent.
-   - Connect uploaded documents to the file-based RAG pipeline.
+2. **File Upload (Completed)**
+   - Integrated Streamlit document uploader with automatic vector indexing.
+   - Immediate background ChromaDB synchronization and chunking on file upload and deletion.
+   - Clean document library management with preview and deletion modals.
 
 3. **Advanced Research Planning**
    - Allow the researcher to break complex questions into multiple research steps.

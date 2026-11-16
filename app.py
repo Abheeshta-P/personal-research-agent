@@ -4,7 +4,7 @@ from langchain_core.messages import HumanMessage
 from graphs.main_graph import graph
 from agents.model import model
 from tools.research import set_active_source
-from tools.files import read_file
+from tools.files import read_file, get_vector_store
 from output.save_research import markdown_to_text, create_filename
 
 # --- Helper functions ---
@@ -69,6 +69,7 @@ def confirm_delete(filename: str):
         if st.button("Delete", type="primary", use_container_width=True):
             try:
                 (Path("data/documents") / filename).unlink()
+                get_vector_store(force_sync=True)
                 st.toast(f"Deleted {filename}.")
                 st.rerun()
             except OSError:
@@ -133,7 +134,9 @@ with st.sidebar:
                     st.toast(f"Could not save {uploaded_file.name}.")
 
             if added > 0:
-                st.toast(f"Uploaded {added} new document(s) successfully.")
+                with st.spinner(f"Indexing {added} document(s)..."):
+                    get_vector_store(force_sync=True)
+                st.toast(f"Uploaded and indexed {added} new document(s).")
                 st.session_state.uploader_key += 1
                 st.rerun()
 

@@ -1,5 +1,9 @@
 from pathlib import Path
+from dotenv import load_dotenv
 from langchain_core.tools import tool
+
+# Load environment variables
+load_dotenv()
 
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -105,12 +109,12 @@ def load_and_chunk_documents() -> list[Document]:
     return all_docs
 
 
-def get_vector_store():
+def get_vector_store(force_sync: bool = False):
     CHROMA_DIR = Path("data/chroma")
     embeddings = GoogleGenerativeAIEmbeddings(model="models/gemini-embedding-001")
 
     vector_store = Chroma(
-        collection_name = "research_documents",
+        collection_name="research_documents",
         embedding_function=embeddings,
         persist_directory=str(CHROMA_DIR),
     )
@@ -119,12 +123,23 @@ def get_vector_store():
     data = vector_store.get()
     indexed_files = set(m["source"] for m in data["metadatas"]) if data["metadatas"] else set()
 
-    # If documents were added, deleted, or if Chroma is empty, re-sync!
-    if current_files != indexed_files:
+    # If documents were added, deleted, forced, or if Chroma is empty, re-sync!
+    if force_sync or current_files != indexed_files:
         print("Document changes detected. Syncing vector store...")
         vector_store.reset_collection()
         docs = load_and_chunk_documents()
         if docs:
             vector_store.add_documents(docs)
-    
+
     return vector_store
+
+def get_vector_store_stats(force_sync: bool = False) -> dict:
+    """Return vector store statistics and ensure index synchronization."""
+    store = get_vector_store(force_sync=force_sync)
+    data = store.get()
+    indexed_files = set(m["source"] for m in data["metadatas"]) if data["metadatas"] else set()
+    return {
+        "total_files": len(indexed_files),
+        "total_chunks": len(data["ids"]) if data["ids"] else 0,
+        "indexed_files": sorted(list(indexed_files)),
+    }
